@@ -1,0 +1,156 @@
+export const products = [
+  {
+    id: 1,
+    name: "Wireless Noise Cancelling Headphones",
+    price: 250,
+    image: "/sony-headset.jpg",
+    description: "Superior sound quality and comfortable over-ear design.",
+  },
+  {
+    id: 2,
+    name: "4K Ultra HD Monitor 27",
+    price: 450.0,
+    image: "/4K Ultra HD Monitor 27.jpg",
+    description: "Vibrant display with thin bezels and adjustable stand.",
+  },
+  {
+    id: 3,
+    name: "Mechanical Keyboard (RGB)",
+    price: 120.5,
+    image: "/Mechanical Keyboard (RGB).jpg",
+    description: "Tactile, responsive switches for gaming and work.",
+  },
+  {
+    id: 4,
+    name: "Portable SSD 1TB",
+    price: 95.0,
+    image: "/Portable SSD 1TB.jpeg",
+    description: "Ultra-fast external storage for backups and transfers.",
+  },
+  {
+    id: 5,
+    name: "Ergonomic Mouse",
+    price: 55.99,
+    image: "/Ergonomic Mouse.jpg",
+    description: "Designed for comfort during long working sessions.",
+  },
+  {
+    id: 6,
+    name: "Smart Watch Series 7",
+    price: 299.0,
+    image: "/Smart Watch Series1.jpeg",
+    description: "Track your fitness, notifications, and vital stats.",
+  },
+  {
+    id: 7,
+    name: "Bluetooth Earbuds Pro",
+    price: 129.99,
+    image: "/Bluetooth Earbuds Pro.jpg",
+    description: "Compact, crystal-clear sound with active noise cancellation.",
+  },
+  {
+    id: 8,
+    name: "Gaming Laptop 15.6”",
+    price: 1250.0,
+    image: "/Gaming Laptop 15.6.jpg",
+    description: "High performance laptop with RTX graphics and fast SSD.",
+  },
+  {
+    id: 9,
+    name: "Smart Home Speaker",
+    price: 89.0,
+    image: "/Smart Home Speaker.jpg",
+    description: "Voice-controlled speaker for music, news, and smart devices.",
+  },
+  {
+    id: 10,
+    name: "Wireless Charging Pad",
+    price: 35.0,
+    image: "/Wireless Charging Pad.jpg",
+    description:
+      "Fast wireless charger compatible with all Qi-enabled devices.",
+  },
+  {
+    id: 11,
+    name: "1080p HD Webcam",
+    price: 70.5,
+    image: "/1080p HD Webcam.jpg",
+    description:
+      "Clear video for meetings and streaming with auto light adjust.",
+  },
+  {
+    id: 12,
+    name: "Mechanical Gaming Mouse Pad (XL)",
+    price: 29.99,
+    image: "/Mechanical Gaming Mouse Pad (XL).jpg",
+    description: "Smooth RGB edge pad for precision and immersive gaming.",
+  },
+  {
+    id: 13,
+    name: "Portable Bluetooth Speaker",
+    price: 59.99,
+    image: "/Portable Bluetooth Speaker.jpeg",
+    description:
+      "Water-resistant speaker with deep bass and long battery life.",
+  },
+  {
+    id: 14,
+    name: "Wireless Keyboard and Mouse Combo",
+    price: 79.99,
+    image: "/Wireless Keyboard and Mouse Combo.jpg",
+    description: "Compact wireless combo ideal for productivity and comfort.",
+  },
+  {
+    id: 15,
+    name: "LED Monitor Light Bar",
+    price: 42.99,
+    image: "/LED Monitor Light Bar.jpg",
+    description:
+      "Eye-care lighting solution with adjustable brightness and tone.",
+  },
+  {
+    id: 16,
+    name: "Smart Wi-Fi Plug (Pack of 2)",
+    price: 24.99,
+    image: "/Smart Wi-Fi Plug (Pack of 2).jpg",
+    description: "Control home devices remotely via app or voice assistant.",
+  },
+  {
+    id: 17,
+    name: "Laptop Cooling Stand",
+    price: 39.5,
+    image: "/Laptop Cooling Stand.jpg",
+    description: "Adjustable stand with silent cooling fans for efficiency.",
+  },
+  {
+    id: 18,
+    name: "USB-C Hub 7-in-1",
+    price: 49.99,
+    image: "/USB-C Hub 7-in-1.jpg",
+    description:
+      "Expand your laptop connectivity with HDMI, USB, and SD ports.",
+  },
+  {
+    id: 19,
+    name: "Noise Cancelling Microphone",
+    price: 99.0,
+    image: "/Noise Cancelling Microphone.jpg",
+    description: "Studio-grade mic ideal for meetings, podcasts, and gaming.",
+  },
+  {
+    id: 20,
+    name: "Smart LED Desk Lamp",
+    price: 64.5,
+    image: "/Smart LED Desk Lamp.jpg",
+    description:
+      "Touch control lamp with adjustable color temperature and brightness.",
+  },
+  {
+    id: 21,
+    name: "Portable Bluetooth Speaker",
+    price: 59.99,
+    image: "/Portable Bluetooth Speaker.jpeg",
+    description:
+      "Water-resistant speaker with deep bass and long battery life.",
+  },
+];
