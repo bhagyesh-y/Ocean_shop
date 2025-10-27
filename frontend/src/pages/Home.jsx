@@ -1,13 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { products } from "../products.js";
+import { CartContext } from "../context/Cartcontext.jsx";
+import { fetchProducts } from "../api/OceanAPI.js";
 
 const Home = () => {
     const [atlanticFade, setAtlanticFade] = useState(false);
-
+    const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
+    const { addToCart } = useContext(CartContext)
+    const [loading, setLoading] = useState(true);// for loading 
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150); // soft fade-in
     }, []);
+    useEffect(() => {
+        const getProducts = async () => {
+            try {
+                const data = await fetchProducts();
+                setOceanProducts(data);
+            }
+            catch (err) {
+                toast.error("Error while fetching products");
+                setError("failed to load products from server");
+            } finally {
+                setLoading(false);
+            }
+        };
+        getProducts();
+    }, [])
+
 
     return (
         <div
@@ -54,7 +73,7 @@ const Home = () => {
                 </h2>
 
                 <div className="row">
-                    {products.slice(0, 6).map((product, index) => (
+                    {oceanProducts.slice(0, 6).map((product, index) => (
                         <div
                             className="col-md-4 mb-4"
                             key={product.id}

@@ -2,9 +2,10 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
-
-
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,14 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zmv-74k*p4o()75x4yh9tg8bx3-3u36dqh0@!s7wf8e-czg5r='
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -42,6 +39,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "pacific_payments",
 ]
 
 MIDDLEWARE = [
@@ -61,6 +59,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 from datetime import timedelta
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -105,7 +104,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -144,8 +142,6 @@ STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

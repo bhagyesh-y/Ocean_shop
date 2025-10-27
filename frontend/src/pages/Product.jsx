@@ -1,17 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-//import { products } from "../products.js"; // from local array , for learning 
 import { CartContext } from "../context/Cartcontext.jsx"; // from backend
 import { fetchProducts } from "../api/OceanAPI.js";
 import { toast } from "react-toastify";
 
 const Products = () => {
-    const [atlanticFade, setAtlanticFade] = useState(false);
+    const [atlanticFade, setAtlanticFade] = useState(false);// fade in effect
     const { addToCart } = useContext(CartContext);
     const [addedProducts, setAddedProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");// for searching products 
     const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
-    const [loading, setLoading] = useState(true);// for loadeing 
+    const [loading, setLoading] = useState(true);// for loading 
     const [error, setError] = useState("");
     // fade-in effect on mount 
     useEffect(() => {
@@ -39,6 +38,16 @@ const Products = () => {
     const handleAddToCart = (product) => {
         addToCart(product);
         setAddedProducts((prev) => [...prev, product.id]);
+        toast.success("🛒 Added to cart successfully!", {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+        });
         setTimeout(() => {
             setAddedProducts((prev) => prev.filter((id) => id !== product.id));
         }, 2000);
@@ -211,10 +220,12 @@ const Products = () => {
                                                             : "btn-outline-success"
                                                             }`}
                                                         onClick={() => handleAddToCart(product)}
+
                                                         style={{
                                                             transition: "all 0.3s ease",
                                                             minWidth: "120px",
                                                         }}
+
                                                     >
                                                         {addedProducts.includes(product.id)
                                                             ? "Added ✅"
@@ -234,7 +245,7 @@ const Products = () => {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

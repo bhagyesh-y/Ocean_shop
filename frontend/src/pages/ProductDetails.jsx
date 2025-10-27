@@ -1,14 +1,17 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { products } from "../products.js";
+import { fetchProducts } from "../api/OceanAPI.js";
 import { CartContext } from "../context/Cartcontext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const ProductDetails = () => {
     const { id } = useParams();
+    const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
     const { addToCart } = useContext(CartContext);
-    const product = products.find((p) => p.id === parseInt(id));
+    const product = oceanProducts.find((p) => p.id === parseInt(id));
+    const [loading, setLoading] = useState(true);// for loading 
     const [added, setAdded] = useState(false);
     const [fadeIn, setFadeIn] = useState(false);
     const navigate = useNavigate();
@@ -16,6 +19,22 @@ const ProductDetails = () => {
     useEffect(() => {
         setTimeout(() => setFadeIn(true), 150);
     }, []);
+    // fetching products from backend 
+    useEffect(() => {
+        const getProducts = async () => {
+            try {
+                const data = await fetchProducts();
+                setOceanProducts(data);
+            }
+            catch (err) {
+                toast.error("Error while fetching products");
+                setError("failed to load products from server");
+            } finally {
+                setLoading(false);
+            }
+        };
+        getProducts();
+    }, [])
 
     if (!product) {
         return (

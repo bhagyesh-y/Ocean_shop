@@ -15,6 +15,8 @@ urlpatterns = [
     path('api/profile/', ProfileView.as_view(), name='profile'),
     path('api/google-login/', GoogleLoginView.as_view(), name='google_login'),
     path("api/",include('pacific_products.urls')),
+    path('api/products/', include('pacific_products.urls')),
+    path('api/payments/', include('pacific_payments.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

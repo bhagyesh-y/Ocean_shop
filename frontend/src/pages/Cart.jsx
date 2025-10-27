@@ -27,16 +27,52 @@ const Cart = () => {
         setShowModal(true);
     };
 
-    const confirmCheckout = () => {
-        toast.success("Thank you for your purchase! 🌊", {
-            position: "top-right",
-            autoClose: 3000,
-            theme: "colored",
-            transition: Bounce,
-        });
-        clearCart();
-        setShowModal(false);
+    const confirmCheckout = async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ amount: totalPrice }),
+            });
+
+            const orderData = await response.json();
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID, // or your key directly
+                amount: orderData.amount,
+                currency: "INR",
+                name: "OceanCart",
+                description: "Order Payment",
+                order_id: orderData.id,
+                handler: function (response) {
+                    toast.success("Payment Successful 🌊", {
+                        position: "top-right",
+                        autoClose: 3000,
+                        theme: "colored",
+                        transition: Bounce,
+                    });
+                    clearCart();
+                    setShowModal(false);
+                },
+                prefill: {
+                    name: "Bhagyesh Yadav",
+                    email: "bhagyeshyadav29@gmail.com",
+                },
+                theme: {
+                    color: "#0077b6",
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            console.error(error);
+            toast.error("Something went wrong!");
+        }
     };
+
 
     if (cart.length === 0) {
         return (
