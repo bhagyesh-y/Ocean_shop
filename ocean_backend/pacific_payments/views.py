@@ -1,44 +1,64 @@
 from django.shortcuts import render
-
-import razorpay
+from django.http import JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.contrib.auth.models import User
 from .models import OceanOrder
+import razorpay
+import json
 
 @csrf_exempt
 def create_order(request):
     if request.method == "POST":
-        import json
-        data = json.loads(request.body)
-        amount = int(float(data['amount']) * 100)  # convert to paise
-        user_id = data.get('user_id')
+        try:
+            data = json.loads(request.body)
+            amount = int(float(data.get('amount', 0)) * 100)  # convert ₹ to paise
+            user_id = data.get('user_id')
 
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-        payment = client.order.create({
-            "amount": amount,
-            "currency": "INR",
-            "payment_capture": 1
-        })
+            if not user_id:
+                return JsonResponse({"error": "user_id is required"}, status=400)
 
-        order = OceanOrder.objects.create(
-            user_id=user_id,
-            order_id=payment['id'],
-            amount=data['amount']
-        )
+            # ✅ Ensure user exists
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return JsonResponse({"error": "User not found"}, status=404)
 
-        return JsonResponse({"order_id": payment['id'], "key": settings.RAZORPAY_KEY_ID})
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            payment = client.order.create({
+                "amount": amount,
+                "currency": "INR",
+                "payment_capture": 1
+            })
+
+            # ✅ Create order in database
+            order = OceanOrder.objects.create(
+                user=user,
+                order_id=payment['id'],
+                amount=data['amount']
+            )
+
+            return JsonResponse({
+                "order_id": payment['id'],
+                "key": settings.RAZORPAY_KEY_ID,
+                "amount": data['amount'],
+                "currency": "INR"
+            })
+        
+        except Exception as e:
+            print("❌ Error creating Razorpay order:", e)
+            return JsonResponse({"error": str(e)}, status=500)
+    
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
 @csrf_exempt
 def verify_payment(request):
     if request.method == "POST":
-        import json
-        data = json.loads(request.body)
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-
         try:
+            data = json.loads(request.body)
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
             client.utility.verify_payment_signature({
                 'razorpay_order_id': data['razorpay_order_id'],
                 'razorpay_payment_id': data['razorpay_payment_id'],
@@ -51,6 +71,8 @@ def verify_payment(request):
             order.save()
 
             return JsonResponse({"status": "Payment Successful"})
-        except:
-            return JsonResponse({"status": "Payment Verification Failed"}, status=400)
-
+        except Exception as e:
+            print("❌ Payment verification error:", e)
+            return JsonResponse({"status": "Payment Verification Failed", "error": str(e)}, status=400)
+    
+    return JsonResponse({"error": "Invalid request"}, status=400)

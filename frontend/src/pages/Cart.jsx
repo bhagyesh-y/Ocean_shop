@@ -29,24 +29,41 @@ const Cart = () => {
 
     const confirmCheckout = async () => {
         try {
+            const user = JSON.parse(localStorage.getItem("oceanUser")); // or whatever key you use
+            const user_id = user?.id; // use optional chaining to avoid crash
+            const amount = totalPrice; // your cart total
+
             const response = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ amount: totalPrice }),
+                headers: { "Content-Type": "application/json", },
+                body: JSON.stringify({
+                    amount: totalPrice, user_id: user?.id, // ✅ must exist 
+                }),
             });
 
-            const orderData = await response.json();
+            const data = await response.json();
+            console.log("✅ Order response:", data);
+
+            if (!data.key || !data.order_id) {
+                console.error("❌ Missing Razorpay key in response");
+                toast.error("Payment setup failed. Try again!", { theme: "colored" });
+                return;
+            }
 
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID, // or your key directly
-                amount: orderData.amount,
+                // key: import.meta.env.VITE_RAZORPAY_KEY_ID, // or your key directly
+                key: data.key,
+                amount: data.amount * 100,// amount in paise
                 currency: "INR",
                 name: "OceanCart",
                 description: "Order Payment",
-                order_id: orderData.id,
-                handler: function (response) {
+                order_id: data.id,
+                handler: async function (response) {
+                    const verify = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(response),
+                    })
                     toast.success("Payment Successful 🌊", {
                         position: "top-right",
                         autoClose: 3000,
@@ -57,14 +74,20 @@ const Cart = () => {
                     setShowModal(false);
                 },
                 prefill: {
-                    name: "Bhagyesh Yadav",
-                    email: "bhagyeshyadav29@gmail.com",
+                    name: user?.first_name || "Ocean User",
+                    email: user?.email || "test@example.com",
+                    contact: "9588459493",
                 },
                 theme: {
                     color: "#0077b6",
                 },
             };
 
+            // ✅ Ensure Razorpay script loaded
+            if (!window.Razorpay) {
+                alert("Razorpay SDK not loaded properly. Check your script tag.");
+                return;
+            }
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch (error) {
