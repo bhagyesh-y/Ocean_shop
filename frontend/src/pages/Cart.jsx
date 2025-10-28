@@ -51,19 +51,26 @@ const Cart = () => {
             }
 
             const options = {
-                // key: import.meta.env.VITE_RAZORPAY_KEY_ID, // or your key directly
                 key: data.key,
                 amount: data.amount * 100,// amount in paise
                 currency: "INR",
                 name: "OceanCart",
                 description: "Order Payment",
-                order_id: data.id,
+                order_id: data.order_id,
                 handler: async function (response) {
-                    const verify = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
+                    console.log("Payment Response", response)// contains rz_order_id,payment_id,rz signature
+                    const verifyResponse = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(response),
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        }),
                     })
+                    const verifyData = await verifyResponse.json();
+                    console.log("Verify response:", verifyData);
+                    alert(verifyData.status);
                     toast.success("Payment Successful 🌊", {
                         position: "top-right",
                         autoClose: 3000,
@@ -73,6 +80,7 @@ const Cart = () => {
                     clearCart();
                     setShowModal(false);
                 },
+
                 prefill: {
                     name: user?.first_name || "Ocean User",
                     email: user?.email || "test@example.com",
