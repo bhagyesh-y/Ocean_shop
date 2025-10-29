@@ -56,23 +56,36 @@ def create_order(request):
 def verify_payment(request):
     if request.method == "POST":
         try:
+            import json
             data = json.loads(request.body)
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
+            # ✅ Step 1: Verify the Razorpay payment signature
             client.utility.verify_payment_signature({
                 'razorpay_order_id': data['razorpay_order_id'],
                 'razorpay_payment_id': data['razorpay_payment_id'],
                 'razorpay_signature': data['razorpay_signature']
             })
 
+            # ✅ Step 2: Fetch full payment info from Razorpay
+            payment_info = client.payment.fetch(data['razorpay_payment_id'])
+
+            # ✅ Step 3: Update your OceanOrder record
             order = OceanOrder.objects.get(order_id=data['razorpay_order_id'])
             order.is_paid = True
             order.payment_id = data['razorpay_payment_id']
+            order.status = payment_info.get('status', 'paid')
+            order.method = payment_info.get('method')
+            order.email = payment_info.get('email')
+            order.contact = payment_info.get('contact')
+            order.currency = payment_info.get('currency', 'INR')
             order.save()
 
+            print("✅ Payment verified successfully:", order.order_id)
             return JsonResponse({"status": "Payment Successful"})
+
         except Exception as e:
             print("❌ Payment verification error:", e)
             return JsonResponse({"status": "Payment Verification Failed", "error": str(e)}, status=400)
-    
+
     return JsonResponse({"error": "Invalid request"}, status=400)

@@ -35,6 +35,7 @@ const PacificNavbar = () => {
         navigate("/login");
     };
 
+
     return (
         <nav className="navbar navbar-dark bg-dark pacificNavbar">
             <div className="container-fluid">
