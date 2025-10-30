@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class OceanOrder(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ocean_orders")
     order_id = models.CharField(max_length=100, unique=True)
     payment_id = models.CharField(max_length=100, blank=True, null=True)
     amount = models.FloatField()
