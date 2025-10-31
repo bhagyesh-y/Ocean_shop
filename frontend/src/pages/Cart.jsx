@@ -26,18 +26,25 @@ const Cart = () => {
     const handleCheckout = () => {
         setShowModal(true);
     };
-
     const confirmCheckout = async () => {
         try {
-            const user = JSON.parse(localStorage.getItem("oceanUser")); // or whatever key you use
-            const user_id = user?.id; // use optional chaining to avoid crash
-            const amount = totalPrice; // your cart total
+            const user = JSON.parse(localStorage.getItem("oceanUser"));
+            const user_id = user?.id;
 
+            if (!user_id) {
+                toast.error("Please log in before checkout.", { theme: "colored" });
+                return;
+            }
+
+            const amount = totalPrice;
+
+            // 1️⃣ Create order in Django + Razorpay
             const response = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    amount: totalPrice, user_id: user?.id, // ✅ must exist 
+                    amount: amount,
+                    user_id: user_id, // ✅ include user id
                 }),
             });
 
@@ -45,20 +52,23 @@ const Cart = () => {
             console.log("✅ Order response:", data);
 
             if (!data.key || !data.order_id) {
-                console.error("❌ Missing Razorpay key in response");
                 toast.error("Payment setup failed. Try again!", { theme: "colored" });
                 return;
             }
 
+            // 2️⃣ Razorpay Checkout
             const options = {
                 key: data.key,
-                amount: data.amount * 100,// amount in paise
+                amount: data.amount * 100,
                 currency: "INR",
                 name: "OceanCart",
                 description: "Order Payment",
                 order_id: data.order_id,
+
                 handler: async function (response) {
-                    console.log("Payment Response", response)// contains rz_order_id,payment_id,rz signature
+                    console.log("💰 Payment Response", response);
+
+                    // 3️⃣ Verify payment in Django
                     const verifyResponse = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -66,18 +76,25 @@ const Cart = () => {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
+                            user_id: user_id, // ✅ send user ID for mapping
                         }),
-                    })
+                    });
+
                     const verifyData = await verifyResponse.json();
                     console.log("Verify response:", verifyData);
-                    alert(verifyData.status);
-                    toast.success("Payment Successful 🌊", {
-                        position: "top-right",
-                        autoClose: 3000,
-                        theme: "colored",
-                        transition: Bounce,
-                    });
-                    clearCart();
+
+                    if (verifyData.status === "Payment Successful") {
+                        toast.success("Payment Successful 🌊", {
+                            position: "top-right",
+                            autoClose: 3000,
+                            theme: "colored",
+                            transition: Bounce,
+                        });
+                        clearCart();
+                    } else {
+                        toast.error("Payment verification failed.", { theme: "colored" });
+                    }
+
                     setShowModal(false);
                 },
 
@@ -86,23 +103,22 @@ const Cart = () => {
                     email: user?.email || "test@example.com",
                     contact: "9588459493",
                 },
-                theme: {
-                    color: "#0077b6",
-                },
+                theme: { color: "#0077b6" },
             };
 
-            // ✅ Ensure Razorpay script loaded
             if (!window.Razorpay) {
                 alert("Razorpay SDK not loaded properly. Check your script tag.");
                 return;
             }
+
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch (error) {
             console.error(error);
-            toast.error("Something went wrong!");
+            toast.error("Something went wrong while processing payment.");
         }
     };
+
 
 
     if (cart.length === 0) {
