@@ -4,14 +4,43 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 
 const Cart = () => {
-    const { cart, removeFromCart, clearCart, totalPrice } = useContext(CartContext);
+    const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext); // ✅ NEW: added setCart
     const [fadeIn, setFadeIn] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         setTimeout(() => setFadeIn(true), 150);
-    }, []);
+
+        // ✅ NEW: Fetch user-specific cart when component loads
+        const fetchUserCart = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem("oceanUser"));
+                const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+                const accessToken = tokens?.access;
+
+                if (!user || !accessToken) return;
+
+                const response = await fetch("http://127.0.0.1:8000/api/cart/", {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setCart(data) // ✅ update CartContext
+                } else {
+                    console.error("Failed to fetch user cart");
+                }
+            } catch (error) {
+                console.error("Error loading user cart:", error);
+            }
+        };
+
+        fetchUserCart();
+    }, [setCart]);
 
     const handleRemove = (id, name) => {
         removeFromCart(id);
@@ -26,6 +55,7 @@ const Cart = () => {
     const handleCheckout = () => {
         setShowModal(true);
     };
+
     const confirmCheckout = async () => {
         try {
             const user = JSON.parse(localStorage.getItem("oceanUser"));
@@ -119,8 +149,7 @@ const Cart = () => {
         }
     };
 
-
-
+    // 💡 Empty cart UI
     if (cart.length === 0) {
         return (
             <div
@@ -141,6 +170,7 @@ const Cart = () => {
         );
     }
 
+    // 💡 Cart UI (unchanged)
     return (
         <>
             <div
@@ -171,8 +201,9 @@ const Cart = () => {
                                 <tr key={item.id}>
                                     <td>
                                         <img
-                                            src={item.image}
-                                            alt={item.name}
+                                            // ✅ Using nested product image from backend data
+                                            src={item.product?.image || item.image}
+                                            alt={item.product?.name || item.name}
                                             style={{
                                                 width: "70px",
                                                 height: "70px",
@@ -181,14 +212,32 @@ const Cart = () => {
                                             }}
                                         />
                                     </td>
-                                    <td>{item.name}</td>
-                                    <td>₹{item.price}</td>
+
+                                    {/* ✅ Product Name */}
+                                    <td>{item.product?.name || item.name}</td>
+
+                                    {/* ✅ Product Price */}
+                                    <td>₹{item.product?.price || item.price}</td>
+
+                                    {/* ✅ Quantity */}
                                     <td>{item.quantity}</td>
-                                    <td>₹{item.price * item.quantity}</td>
+
+                                    {/* ✅ Subtotal Calculation (prevents NaN) */}
+                                    <td>
+                                        ₹
+                                        {(
+                                            (parseFloat(item.product?.price || item.price || 0) *
+                                                item.quantity) || 0
+                                        ).toFixed(2)}
+                                    </td>
+
+                                    {/* ✅ Remove Button */}
                                     <td>
                                         <button
                                             className="btn btn-danger btn-sm"
-                                            onClick={() => handleRemove(item.id, item.name)}
+                                            onClick={() =>
+                                                handleRemove(item.id, item.product?.name || item.name)
+                                            }
                                         >
                                             Remove
                                         </button>

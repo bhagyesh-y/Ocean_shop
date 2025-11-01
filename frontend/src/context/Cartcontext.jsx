@@ -8,20 +8,34 @@ export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
 
     // Add item to cart
-    const addToCart = (product) => {
-        setCart((prevCart) => {
-            const existingItem = prevCart.find((item) => item.id === product.id);
-            if (existingItem) {
-                // Increase quantity if already in cart
-                return prevCart.map((item) =>
-                    item.id === product.id
-                        ? { ...item, quantity: item.quantity + 1 }
-                        : item
-                );
+    const addToCart = async (item) => {
+        try {
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+            const accessToken = tokens?.access;
+
+            const response = await fetch("http://127.0.0.1:8000/api/cart/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({
+                    product_id: item.id,
+                    quantity: 1,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setCart((prev) => [...prev, data]); // ✅ add backend response item
+            } else {
+                console.error("Failed to add item to backend cart");
             }
-            return [...prevCart, { ...product, quantity: 1 }];
-        });
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+        }
     };
+
 
     // Remove item from cart
     const removeFromCart = (id) => {
@@ -32,17 +46,15 @@ export const CartProvider = ({ children }) => {
     const clearCart = () => setCart([]);
 
     // Total price
-    const totalPrice = cart.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-    );
+    const totalPrice = cart.reduce((sum, item) => sum + (item.product?.price * item.quantity), 0);
+
 
     // Total items in cart
     const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
     return (
         <CartContext.Provider
-            value={{ cart, addToCart, removeFromCart, clearCart, totalPrice, cartCount }}
+            value={{ cart, addToCart, removeFromCart, clearCart, totalPrice, cartCount, setCart }}
         >
             {children}
         </CartContext.Provider>
