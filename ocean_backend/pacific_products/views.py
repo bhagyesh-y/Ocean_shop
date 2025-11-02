@@ -2,7 +2,10 @@ from django.shortcuts import render
 from rest_framework import generics, permissions
 from .models import Product, OceanCart
 from .serializers import ProductSerializer, OceanCartSerializer
-
+from .models import OceanCart
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 # 🌊 Products
 class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
@@ -37,3 +40,10 @@ class OceanCartDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         # Restrict access to user's own cart only
         return OceanCart.objects.filter(user=self.request.user)
+
+@api_view(['Delete'])
+@permission_classes([IsAuthenticated])
+def clear_cart(request):
+    """ clear all itmes for thelogged in user """
+    OceanCart.objects.filter(user=request.user).delete()
+    return Response([{"message": "Cart cleared successfully."}])

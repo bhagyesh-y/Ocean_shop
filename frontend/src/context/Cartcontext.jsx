@@ -43,7 +43,35 @@ export const CartProvider = ({ children }) => {
     };
 
     // Clear all items
-    const clearCart = () => setCart([]);
+    // Clear all items (frontend + backend)
+    const clearCart = async () => {
+        try {
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+            const accessToken = tokens?.access;
+
+            if (!accessToken) {
+                console.warn("No access token found");
+                setCart([]);
+                return;
+            }
+
+            // 🔹 Call backend to clear user's cart
+            await fetch("http://127.0.0.1:8000/api/cart/clear/", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+
+            // 🔹 Clear cart in React state
+            setCart([]);
+            console.log("Cart cleared (backend + frontend)");
+        } catch (error) {
+            console.error("Error clearing cart:", error);
+        }
+    };
+
 
     // Total price
     const totalPrice = cart.reduce((sum, item) => sum + (item.product?.price * item.quantity), 0);
