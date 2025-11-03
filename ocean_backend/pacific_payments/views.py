@@ -8,7 +8,9 @@ from django.utils.decorators import method_decorator
 from .models import OceanOrder
 import razorpay
 import json
-
+import hmac
+import hashlib
+from .models import OceanOrder
 
 @csrf_exempt
 def create_order(request):
@@ -119,3 +121,40 @@ def verify_payment(request):
             return JsonResponse({"status": "Payment Verification Failed", "error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+# webhook to handle razorpay payment status updates 
+@csrf_exempt
+def razorpay_webhook(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=400)
+
+    try:
+        webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+        received_signature = request.headers.get("X-Razorpay-Signature")
+        body = request.body.decode()
+
+        # Verify signature
+        generated_signature = hmac.new(
+            webhook_secret.encode(), body.encode(), hashlib.sha256
+        ).hexdigest()
+
+        if received_signature != generated_signature:
+            return JsonResponse({"error": "Invalid signature"}, status=400)
+
+        data = json.loads(body)
+        event = data.get("event")
+
+        # Handle specific events
+        if event == "payment.captured":
+            order_id = data["payload"]["payment"]["entity"]["order_id"]
+            OceanOrder.objects.filter(order_id=order_id).update(status="PAID")
+
+        elif event == "payment.failed":
+            order_id = data["payload"]["payment"]["entity"]["order_id"]
+            OceanOrder.objects.filter(order_id=order_id).update(status="FAILED")
+
+        return JsonResponse({"status": "success"})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
