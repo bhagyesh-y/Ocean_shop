@@ -94,6 +94,8 @@ const Cart = () => {
                 name: "OceanCart",
                 description: "Order Payment",
                 order_id: data.order_id,
+                theme: { color: "#0077b6" },
+                method: ["upi", "card", "wallet", "netbanking", "paylater"],
 
                 handler: async function (response) {
                     console.log("💰 Payment Response", response);
