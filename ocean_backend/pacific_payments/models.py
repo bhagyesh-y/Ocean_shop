@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class OceanOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ocean_orders")
@@ -16,3 +17,15 @@ class OceanOrder(models.Model):
 
     def __str__(self):
         return f"Order {self.order_id} by {self.user.username}"
+    
+class RazorpayWebhookLog(models.Model):
+    event = models.CharField(max_length=100)
+    payload = models.JSONField()
+    received_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        # Format time in local timezone (Asia/Kolkata)
+        local_time = timezone.localtime(self.received_at)
+        formatted_time = local_time.strftime("%d %b %Y — %I:%M %p IST")
+        return f"{self.event} at {formatted_time}"
+  

@@ -17,6 +17,9 @@ RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "grandiosely-unpostered-linsey.ngrok-free.dev",
 ]
 
 # Application definition
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "pacific_payments",
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

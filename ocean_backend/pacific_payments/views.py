@@ -10,7 +10,7 @@ import razorpay
 import json
 import hmac
 import hashlib
-from .models import OceanOrder
+from .models import OceanOrder,RazorpayWebhookLog
 
 @csrf_exempt
 def create_order(request):
@@ -134,7 +134,7 @@ def razorpay_webhook(request):
         received_signature = request.headers.get("X-Razorpay-Signature")
         body = request.body.decode()
 
-        # Verify signature
+        # ✅ Verify signature
         generated_signature = hmac.new(
             webhook_secret.encode(), body.encode(), hashlib.sha256
         ).hexdigest()
@@ -142,10 +142,15 @@ def razorpay_webhook(request):
         if received_signature != generated_signature:
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
+        # ✅ Parse and log webhook payload
         data = json.loads(body)
-        event = data.get("event")
+        RazorpayWebhookLog.objects.create(
+            event=data.get("event"),
+            payload=data
+        )
 
-        # Handle specific events
+        # ✅ Handle specific events
+        event = data.get("event")
         if event == "payment.captured":
             order_id = data["payload"]["payment"]["entity"]["order_id"]
             OceanOrder.objects.filter(order_id=order_id).update(status="PAID")
@@ -157,4 +162,5 @@ def razorpay_webhook(request):
         return JsonResponse({"status": "success"})
 
     except Exception as e:
+        print("❌ Webhook error:", e)
         return JsonResponse({"error": str(e)}, status=500)
