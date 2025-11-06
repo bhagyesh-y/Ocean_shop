@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 
 const Cart = () => {
-    const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext); // ✅ NEW: added setCart
+    const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext);
     const [fadeIn, setFadeIn] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
@@ -12,7 +12,7 @@ const Cart = () => {
     useEffect(() => {
         setTimeout(() => setFadeIn(true), 150);
 
-        // ✅ NEW: Fetch user-specific cart when component loads
+        // Fetch user-specific cart when component loads
         const fetchUserCart = async () => {
             try {
                 const user = JSON.parse(localStorage.getItem("oceanUser"));
@@ -20,14 +20,13 @@ const Cart = () => {
                 const accessToken = tokens?.access;
 
                 if (!user || !accessToken) return;
-
+                //fetch cart from backend API
                 const response = await fetch("http://127.0.0.1:8000/api/cart/", {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json",
                     },
                 });
-
                 if (response.ok) {
                     const data = await response.json();
                     setCart(data) // ✅ update CartContext
@@ -67,8 +66,7 @@ const Cart = () => {
             }
 
             const amount = totalPrice;
-
-            // 1️⃣ Create order in Django + Razorpay
+            //  Create order in Django + Razorpay
             const response = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -80,13 +78,12 @@ const Cart = () => {
 
             const data = await response.json();
             console.log("✅ Order response:", data);
-
             if (!data.key || !data.order_id) {
                 toast.error("Payment setup failed. Try again!", { theme: "colored" });
                 return;
             }
 
-            // 2️⃣ Razorpay Checkout
+            //  Razorpay Checkout
             const options = {
                 key: data.key,
                 amount: data.amount * 100,
@@ -100,7 +97,7 @@ const Cart = () => {
                 handler: async function (response) {
                     console.log("💰 Payment Response", response);
 
-                    // 3️⃣ Verify payment in Django
+                    //  Verify payment in Django
                     const verifyResponse = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -108,7 +105,7 @@ const Cart = () => {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
-                            user_id: user_id, // ✅ send user ID for mapping
+                            user_id: user_id, // send user ID for mapping
                         }),
                     });
 
@@ -129,7 +126,7 @@ const Cart = () => {
 
                     setShowModal(false);
                 },
-
+                // prefill user details
                 prefill: {
                     name: user?.first_name || "Ocean User",
                     email: user?.email || "test@example.com",
@@ -151,7 +148,7 @@ const Cart = () => {
         }
     };
 
-    // 💡 Empty cart UI
+    // Empty cart UI
     if (cart.length === 0) {
         return (
             <div
@@ -172,7 +169,7 @@ const Cart = () => {
         );
     }
 
-    // 💡 Cart UI (unchanged)
+    //  Cart UI 
     return (
         <>
             <div
@@ -203,7 +200,7 @@ const Cart = () => {
                                 <tr key={item.id}>
                                     <td>
                                         <img
-                                            // ✅ Using nested product image from backend data
+                                            //  Using nested product image from backend data
                                             src={item.product?.image || item.image}
                                             alt={item.product?.name || item.name}
                                             style={{
@@ -215,16 +212,16 @@ const Cart = () => {
                                         />
                                     </td>
 
-                                    {/* ✅ Product Name */}
+                                    {/*  Product Name */}
                                     <td>{item.product?.name || item.name}</td>
 
-                                    {/* ✅ Product Price */}
+                                    {/* Product Price */}
                                     <td>₹{item.product?.price || item.price}</td>
 
-                                    {/* ✅ Quantity */}
+                                    {/*  Quantity */}
                                     <td>{item.quantity}</td>
 
-                                    {/* ✅ Subtotal Calculation (prevents NaN) */}
+                                    {/*  Subtotal Calculation  */}
                                     <td>
                                         ₹
                                         {(
@@ -233,7 +230,7 @@ const Cart = () => {
                                         ).toFixed(2)}
                                     </td>
 
-                                    {/* ✅ Remove Button */}
+                                    {/*Remove Button */}
                                     <td>
                                         <button
                                             className="btn btn-danger btn-sm"
@@ -263,7 +260,7 @@ const Cart = () => {
                 </div>
             </div>
 
-            {/* 🌊 Checkout Modal */}
+            {/*  Checkout Modal */}
             {showModal && (
                 <div
                     className="modal fade show"

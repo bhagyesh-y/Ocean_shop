@@ -185,6 +185,7 @@ const Products = () => {
                                             >
                                                 <img
                                                     src={product.image}
+                                                    className="card-img-top"
                                                     alt={product.name}
                                                     style={{
                                                         width: "100%",

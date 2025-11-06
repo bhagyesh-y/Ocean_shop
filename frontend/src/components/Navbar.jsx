@@ -39,12 +39,11 @@ const PacificNavbar = () => {
     return (
         <nav className="navbar navbar-dark bg-dark pacificNavbar">
             <div className="container-fluid">
-                {/* Brand */}
+
                 <NavLink to="/" className="navbar-brand fw-bold text-light">
                     Cartify <FaShoppingCart className="ms-1" />
                 </NavLink>
 
-                {/* Desktop links */}
                 <div className="pacificLinks d-none d-lg-flex ms-auto align-items-center">
                     {oceanUser ? (
                         <>

@@ -8,9 +8,12 @@ const Home = () => {
     const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
     const { addToCart } = useContext(CartContext)
     const [loading, setLoading] = useState(true);// for loading 
+    const [error, setError] = useState(null) // for error handling 
+
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150); // soft fade-in
     }, []);
+
     useEffect(() => {
         const getProducts = async () => {
             try {
@@ -89,6 +92,8 @@ const Home = () => {
                                     overflow: "hidden",
                                     background: "white",
                                     transition: "all 0.3s ease",
+                                    cursor: "pointer",
+                                    height: "220px"
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = "translateY(-8px)";
