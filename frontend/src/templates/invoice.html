@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial;
+      }
+      h2 {
+        color: #0077b6;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>OceanCart Invoice</h2>
+    <p><strong>Customer:</strong> {{ user.first_name }} ({{ user.email }})</p>
+    <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+    <p><strong>Payment ID:</strong> {{ payment.id }}</p>
+    <p><strong>Amount:</strong> ₹{{ order.amount }}</p>
+    <p><strong>Status:</strong> {{ order.status|default:"Success" }}</p>
+  </body>
+</html>

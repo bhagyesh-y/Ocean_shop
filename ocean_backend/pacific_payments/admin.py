@@ -36,3 +36,4 @@ class RazorpayWebhookLogAdmin(admin.ModelAdmin):
         data = str(obj.payload)
         return data[:80] + "..." if len(data) > 80 else data
     short_payload.short_description = "Payload"
+

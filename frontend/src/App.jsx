@@ -17,6 +17,7 @@ import { OceanAuthProvider, OceanAuthContext } from "./context/AuthContext";
 import About from "./pages/About";
 import CustomerService from "./pages/CustomerService";
 import QuickLinks from "./pages/QuickLinks";
+import PaymentHistory from "./pages/PaymentHistory";
 
 const AppRoutes = () => {
   const { oceanUser } = useContext(OceanAuthContext);
@@ -50,6 +51,9 @@ const AppRoutes = () => {
           <Route path="/about" element={<About />} />
           <Route path="/customer-service" element={<CustomerService />} />
           <Route path="/quick-links" element={<QuickLinks />} />
+          <Route path="/payment-history" element={<PaymentHistory />} />
+          {/* Redirect any unknown route to home */}
+          <Route path="/" element={<Navigate to='/' replace />} />
         </Routes>
       </main>
       <Footer />

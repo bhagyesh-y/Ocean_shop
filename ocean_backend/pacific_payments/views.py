@@ -10,7 +10,10 @@ import razorpay
 import json
 import hmac
 import hashlib
-from .models import OceanOrder,RazorpayWebhookLog
+from .models import OceanOrder,RazorpayWebhookLog,PaymentHistory
+from rest_framework import generics, permissions
+from .serializers import PaymentHistorySerializer
+from django.utils import timezone
 
 @csrf_exempt
 def create_order(request):
@@ -72,6 +75,7 @@ def verify_payment(request):
     ✅ Verify payment securely.
     Checks if the order belongs to the user who created it.
     Updates order status after successful verification.
+    Logs payment history for each successful payment.
     """
     if request.method == "POST":
         try:
@@ -81,6 +85,7 @@ def verify_payment(request):
             if not user_id:
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
+            # ✅ Ensure the user exists
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
@@ -98,7 +103,7 @@ def verify_payment(request):
             # ✅ Step 2: Fetch payment info
             payment_info = client.payment.fetch(data["razorpay_payment_id"])
 
-            # ✅ Step 3: Find order that belongs to the same user
+            # ✅ Step 3: Find and update order for this user
             order = OceanOrder.objects.get(order_id=data["razorpay_order_id"], user=user)
             order.is_paid = True
             order.payment_id = data["razorpay_payment_id"]
@@ -109,7 +114,17 @@ def verify_payment(request):
             order.currency = payment_info.get("currency", "INR")
             order.save()
 
-            print(f"✅ Payment verified for user {user.username}, order {order.order_id}")
+            # ✅ Step 4: Create Payment History record
+            PaymentHistory.objects.create(
+                user=user,
+                order_id=data["razorpay_order_id"],
+                payment_id=data["razorpay_payment_id"],
+                amount=order.amount,
+                method=order.method or payment_info.get("method", "unknown"),
+                status="success",
+            )
+
+            print(f"✅ Payment verified and logged for user {user.username}, order {order.order_id}")
             return JsonResponse({"status": "Payment Successful"})
 
         except OceanOrder.DoesNotExist:
@@ -121,7 +136,6 @@ def verify_payment(request):
             return JsonResponse({"status": "Payment Verification Failed", "error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
-
 
 # webhook to handle razorpay payment status updates 
 @csrf_exempt
@@ -164,3 +178,10 @@ def razorpay_webhook(request):
     except Exception as e:
         print("❌ Webhook error:", e)
         return JsonResponse({"error": str(e)}, status=500)
+    
+class UserPaymentHistoryView(generics.ListAPIView):
+    serializer_class = PaymentHistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return PaymentHistory.objects.filter(user=self.request.user).order_by("-created_at")

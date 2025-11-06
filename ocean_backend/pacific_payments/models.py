@@ -29,3 +29,16 @@ class RazorpayWebhookLog(models.Model):
         formatted_time = local_time.strftime("%d %b %Y — %I:%M %p IST")
         return f"{self.event} at {formatted_time}"
   
+
+class PaymentHistory(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    order_id = models.CharField(max_length=100)
+    payment_id = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    method = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=50, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} — ₹{self.amount} ({self.status})"
+    
