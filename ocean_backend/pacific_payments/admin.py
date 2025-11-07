@@ -1,9 +1,10 @@
 from django.contrib import admin
-from .models import OceanOrder,RazorpayWebhookLog
+from .models import OceanOrder,RazorpayWebhookLog , PaymentHistory
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.utils import timezone
+
 
 class CustomUserAdmin(UserAdmin):
     list_display = ('id', 'username', 'email', 'is_staff', 'is_active', 'date_joined')
@@ -37,3 +38,4 @@ class RazorpayWebhookLogAdmin(admin.ModelAdmin):
         return data[:80] + "..." if len(data) > 80 else data
     short_payload.short_description = "Payload"
 
+admin.site.register(PaymentHistory)

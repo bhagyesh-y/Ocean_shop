@@ -120,6 +120,7 @@ const Cart = () => {
                             transition: Bounce,
                         });
                         clearCart();
+                        navigate("/payment-history");
                     } else {
                         toast.error("Payment verification failed.", { theme: "colored" });
                     }
