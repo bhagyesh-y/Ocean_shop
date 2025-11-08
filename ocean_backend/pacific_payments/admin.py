@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OceanOrder,RazorpayWebhookLog , PaymentHistory
+from .models import OceanOrder,RazorpayWebhookLog , PaymentHistory,OceanInvoice
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -38,4 +38,14 @@ class RazorpayWebhookLogAdmin(admin.ModelAdmin):
         return data[:80] + "..." if len(data) > 80 else data
     short_payload.short_description = "Payload"
 
-admin.site.register(PaymentHistory)
+@admin.register(PaymentHistory)
+class PaymentHistoryAdmin(admin.ModelAdmin):
+      list_display = ("id", "user", "order_id", "payment_id", "amount", "status", "created_at")
+      search_fields = ("order_id", "payment_id", "user__email")
+   
+@admin.register(OceanInvoice)
+class OceanInvoiceAdmin(admin.ModelAdmin):
+    list_display=("id","invoice_number","order","user","invoice_date","due_date","payment")
+    readonly_fields=["pdf_file"]
+
+

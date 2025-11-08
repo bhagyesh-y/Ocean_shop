@@ -4,8 +4,9 @@ import { toast, Bounce } from "react-toastify";
 const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [analytics, setAnalytics] = useState(null);
 
-    // 🌊 Fetch payment history
+    // Fetch payment history
     useEffect(() => {
         const fetchPayments = async () => {
             try {
@@ -40,6 +41,18 @@ const PaymentHistory = () => {
         fetchPayments();
     }, []);
 
+    // Fetch Payment Analytics
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+            const res = await fetch("http://127.0.0.1:8000/api/payments/analytics/user/", {
+                headers: { Authorization: `Bearer ${tokens.access}` }
+            });
+            const data = await res.json();
+            setAnalytics(data);
+        };
+        fetchAnalytics();
+    }, []);
     // 🌀 Loading State
     if (loading) {
         return (
@@ -66,7 +79,7 @@ const PaymentHistory = () => {
         );
     }
 
-    // 🌊 Payment History Table
+    //  Payment History Table
     return (
         <div
             className="container py-5"
@@ -80,7 +93,32 @@ const PaymentHistory = () => {
             <h2 className="text-center text-white fw-bold mb-4">
                 🌊 Payment History
             </h2>
-
+            {/* Analytics View */}
+            {analytics && (
+                <div className="row mb-3">
+                    <div className="col-sm-4">
+                        <div className="card p-3">
+                            <h6>Total Spent</h6>
+                            <h4>₹{analytics.total_spent}</h4>
+                        </div>
+                    </div>
+                    <div className="col-sm-4">
+                        <div className="card p-3">
+                            <h6>Total Payments</h6>
+                            <h4>{analytics.total_payments}</h4>
+                        </div>
+                    </div>
+                    <div className="col-sm-4">
+                        <div className="card p-3">
+                            <h6>Top Methods</h6>
+                            {analytics.per_method.map(m => (
+                                <div key={m.method}>{m.method}: ₹{m.sum} ({m.count})</div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Table View for Desktop */}
             <div className="table-responsive d-none d-sm-block shadow-lg rounded-4 overflow-hidden">
                 <table className="table table-striped align-middle text-center bg-white">
                     <thead className="table-info">
@@ -121,6 +159,15 @@ const PaymentHistory = () => {
                                         dateStyle: "medium",
                                         timeStyle: "short",
                                     })}
+                                </td>
+                                <td>
+                                    <a
+                                        href={`http://127.0.0.1:8000/api/payments/invoice/download/${payment.invoice_id}/`}
+                                        className="btn btn-sm btn-outline-primary"
+                                        target="_blank" rel="noreferrer"
+                                    >
+                                        Download
+                                    </a>
                                 </td>
                             </tr>
                         ))}

@@ -93,7 +93,7 @@ const PacificNavbar = () => {
                                 to="/cart"
                                 className="btn btn-outline-light position-relative ms-3"
                             >
-                                <FaShoppingCart className="me-1" /> Cart
+                                <FaShoppingCart className="me-1" />
                                 {cart?.length > 0 && (
                                     <span
                                         className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
@@ -192,13 +192,15 @@ const PacificNavbar = () => {
                                 <NavLink to="/feedback" className="reefLink">
                                     Feedback
                                 </NavLink>
+                                <NavLink to="/about" className="reefLink">
+                                    About</NavLink>
                                 <NavLink to="/payment-history" className="reefLink">
                                     Payment History
                                     <NavLink
                                         to="/cart"
                                         className="btn btn-light w-100 mt-3 position-relative"
                                     >
-                                        <FaShoppingCart className="me-1" /> Cart
+                                        <FaShoppingCart className="me-1" />
                                         {cart?.length > 0 && (
                                             <span
                                                 className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"

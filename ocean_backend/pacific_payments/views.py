@@ -14,6 +14,12 @@ from .models import OceanOrder,RazorpayWebhookLog,PaymentHistory
 from rest_framework import generics, permissions
 from .serializers import PaymentHistorySerializer
 from django.utils import timezone
+from .utils import save_and_email_invoice
+from .models import OceanInvoice
+from django.http import FileResponse ,Http404
+from django.db.models import Sum,Count
+from rest_framework.decorators import api_view,permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 @csrf_exempt
 def create_order(request):
@@ -30,13 +36,13 @@ def create_order(request):
             if not user_id:
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
-            # ✅ Ensure user exists
+            # Ensure user exists
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
                 return JsonResponse({"error": "User not found"}, status=404)
 
-            # ✅ Create Razorpay order
+            # Create Razorpay order
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
             payment = client.order.create({
                 "amount": amount,
@@ -44,7 +50,7 @@ def create_order(request):
                 "payment_capture": 1
             })
 
-            # ✅ Create order in DB (linked to user)
+            # Create order in DB (linked to user)
             order = OceanOrder.objects.create(
                 user=user,
                 order_id=payment["id"],
@@ -52,7 +58,7 @@ def create_order(request):
                 is_paid=False
             )
 
-            # ✅ Return order details for frontend checkout
+            #  Return order details for frontend checkout
             return JsonResponse({
                 "order_id": payment["id"],
                 "key": settings.RAZORPAY_KEY_ID,
@@ -115,7 +121,7 @@ def verify_payment(request):
             order.save()
 
             # ✅ Step 4: Create Payment History record
-            PaymentHistory.objects.create(
+            payment_history=PaymentHistory.objects.create(
                 user=user,
                 order_id=data["razorpay_order_id"],
                 payment_id=data["razorpay_payment_id"],
@@ -123,6 +129,8 @@ def verify_payment(request):
                 method=order.method or payment_info.get("method", "unknown"),
                 status="success",
             )
+            # Generating and emailing invoice 
+            invoice = save_and_email_invoice(order=order, user=user, payment=payment_history)
 
             print(f"✅ Payment verified and logged for user {user.username}, order {order.order_id}")
             return JsonResponse({"status": "Payment Successful"})
@@ -185,3 +193,27 @@ class UserPaymentHistoryView(generics.ListAPIView):
 
     def get_queryset(self):
         return PaymentHistory.objects.filter(user=self.request.user).order_by("-created_at")
+
+@login_required
+def download_invoice(request,invoice_id):
+    try:
+        invoice=OceanInvoice.objects.get(id=invoice_id,order_user=request.user)
+    except OceanInvoice.DoesNotExist:
+        raise Http404("Invoices not found")
+    if not invoice.pdf_file:
+        raise Http404("Invoice PDF not available")
+    return FileResponse(invoice.pdf_file.open('rb'),as_attachment=True,filename=f"invoice_{invoice.id}")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def payment_analytics_user(request):
+     user = request.user
+     total_spent = PaymentHistory.objects.filter(user=user, status="success").aggregate(total=Sum("amount"))["total"] or 0
+     total_payments = PaymentHistory.objects.filter(user=user).count()
+     per_method = PaymentHistory.objects.filter(user=user, status="success").values("method").annotate(count=Count("id"), sum=Sum("amount"))
+     return JsonResponse({
+        "total_spent": float(total_spent),
+        "total_payments": total_payments,
+        "per_method": list(per_method)
+    })
