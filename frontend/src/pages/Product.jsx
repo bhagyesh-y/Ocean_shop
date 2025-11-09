@@ -1,82 +1,96 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CartContext } from "../context/Cartcontext.jsx"; // from backend
+import { CartContext } from "../context/Cartcontext.jsx";
 import { fetchProducts } from "../api/OceanAPI.js";
 import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 const Products = () => {
-    const [atlanticFade, setAtlanticFade] = useState(false);// fade in effect
+    const [atlanticFade, setAtlanticFade] = useState(false);
     const { addToCart } = useContext(CartContext);
     const [addedProducts, setAddedProducts] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");// for searching products 
-    const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
-    const [loading, setLoading] = useState(true);// for loading 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [oceanProducts, setOceanProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    // fade-in effect on mount 
+
+    // 🌊 Fade-in page mount
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150);
     }, []);
 
-    // fetching products from backend 
+    // 🌐 Fetch products from backend
     useEffect(() => {
         const getProducts = async () => {
             try {
                 const data = await fetchProducts();
                 setOceanProducts(data);
-            }
-            catch (err) {
+            } catch (err) {
                 toast.error("Error while fetching products");
-                setError("failed to load products from server");
+                setError("Failed to load products from server");
             } finally {
                 setLoading(false);
             }
         };
         getProducts();
-    }, [])
+    }, []);
 
-    // handle add to cart with temporary button state change 
+    // 🛒 Add to cart handler
     const handleAddToCart = (product) => {
         addToCart(product);
         setAddedProducts((prev) => [...prev, product.id]);
-        toast.success("🛒 Added to cart successfully!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-        });
+        toast.success("🛒 Added to cart successfully!", { theme: "colored" });
         setTimeout(() => {
             setAddedProducts((prev) => prev.filter((id) => id !== product.id));
         }, 2000);
     };
 
-    // for clearing search 
-    const handleClearSearch = () => {
-        setSearchTerm("");
-    };
-
-    // filter products based on search 
+    // 🔍 Search functionality
     const filteredProducts = oceanProducts.filter((product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // 🎞️ Framer Motion Variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.12, delayChildren: 0.2 },
+        },
+    };
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6, ease: "easeOut" },
+        },
+    };
+
     return (
-        <div
-            className={`container-fluid py-4 px-3 ${atlanticFade ? "opacity-100" : "opacity-0"
-                }`}
+        <motion.div
+            className={`container-fluid py-4 px-3 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
             style={{
                 transition: "opacity 1s ease, transform 0.6s ease",
                 transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
                 background: "linear-gradient(180deg, #caf0f8 0%, #90e0ef 100%)",
                 minHeight: "100vh",
             }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
         >
-            <h1 className="text-center fw-bold mb-4 text-primary">All Products 🌊</h1>
+            <motion.h1
+                className="text-center fw-bold mb-4 text-primary"
+                initial={{ opacity: 0, y: -30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+            >
+                All Products 🌊
+            </motion.h1>
 
-            {/* 🌊 Search Bar with slide-in clear icon */}
+            {/* 🌊 Search Bar */}
             <div className="text-center mb-4 position-relative d-flex justify-content-center">
                 <input
                     type="text"
@@ -94,8 +108,6 @@ const Products = () => {
                     }
                     onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
                 />
-
-                {/* ❌ Clear icon (slides in/out) */}
                 {searchTerm && (
                     <button
                         onClick={() => setSearchTerm("")}
@@ -113,140 +125,118 @@ const Products = () => {
                         ❌
                     </button>
                 )}
-
-                <style>
-                    {`
-      @keyframes slideInRight {
-        from { opacity: 0; transform: translate(15px, -50%); }
-        to { opacity: 1; transform: translate(0, -50%); }
-      }
-    `}
-                </style>
             </div>
 
+            {/* 🌀 Loading / Error */}
+            {loading && (
+                <div className="text-center text-white py-5">
+                    <h4>Loading products... 🌊</h4>
+                </div>
+            )}
+            {error && (
+                <div className="text-center text-danger py-5">
+                    <h4>{error}</h4>
+                </div>
+            )}
 
-            <div
-                className="container pb-5"
-                style={{
-                    background: "linear-gradient(180deg, #ade8f4, #00b4d8, #0077b6)",
-                    borderRadius: "15px",
-                    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
-                    padding: "30px",
-                }}
-            >
-                <div className="row">
-                    {loading && (
-                        <div className="text-center text-white py-5">
-                            <h4>Loading products... 🌊</h4>
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="text-center text-danger py-5">
-                            <h4>{error}</h4>
-                        </div>
-                    )}
-                    {/* Products starts from here */}
-                    {!loading && (
-                        <>
-                            {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
+            {/* 🌊 Product Grid */}
+            {!loading && (
+                <motion.div
+                    className="container pb-5"
+                    style={{
+                        background: "linear-gradient(180deg, #ade8f4, #00b4d8, #0077b6)",
+                        borderRadius: "15px",
+                        boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
+                        padding: "30px",
+                    }}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <div className="row">
+                        {filteredProducts.length > 0 ? (
+                            filteredProducts.map((product) => (
+                                <motion.div
+                                    key={product.id}
+                                    className="col-lg-3 col-md-4 col-sm-6 mb-4"
+                                    variants={cardVariants}
+                                    whileHover={{
+                                        scale: 1.03,
+                                        transition: { duration: 0.3 },
+                                    }}
+                                >
                                     <div
-                                        className="col-md-4 mb-4"
-                                        key={product.id}
+                                        className="card h-100 shadow-sm border-0"
                                         style={{
-                                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                            borderRadius: "15px",
+                                            overflow: "hidden",
+                                            background: "#fff",
                                         }}
                                     >
-                                        <div
-                                            className="card h-100 shadow-sm border-0 pacificCard"
+                                        {/* 🌅 Product Image */}
+                                        <motion.div
+                                            className="d-flex justify-content-center align-items-center bg-light"
                                             style={{
-                                                borderRadius: "15px",
+                                                height: "220px",
                                                 overflow: "hidden",
-                                                transition: "all 0.3s ease",
                                             }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = "translateY(-6px)";
-                                                e.currentTarget.style.boxShadow =
-                                                    "0 8px 20px rgba(0, 123, 255, 0.2)";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = "translateY(0)";
-                                                e.currentTarget.style.boxShadow = "none";
-                                            }}
+                                            whileHover={{ scale: 1.02 }}
+                                            transition={{ duration: 0.4 }}
                                         >
-                                            {/* 🌅 Product Image Container */}
-                                            <div
-                                                className="d-flex justify-content-center align-items-center bg-light"
+                                            <img
+                                                src={product.image}
+                                                alt={product.name}
+                                                className="card-img-top"
                                                 style={{
-                                                    height: "220px",
-                                                    overflow: "hidden",
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "contain",
                                                 }}
-                                            >
-                                                <img
-                                                    src={product.image}
-                                                    className="card-img-top"
-                                                    alt={product.name}
-                                                    style={{
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        objectFit: "contain",
-                                                        transition: "transform 0.4s ease",
-                                                    }}
-                                                    onMouseEnter={(e) =>
-                                                        (e.currentTarget.style.transform = "scale(1.05)")
-                                                    }
-                                                    onMouseLeave={(e) =>
-                                                        (e.currentTarget.style.transform = "scale(1)")
-                                                    }
-                                                />
-                                            </div>
+                                            />
+                                        </motion.div>
 
-                                            {/* 🌊 Product Info */}
-                                            <div className="card-body text-center">
-                                                <h5 className="card-title fw-semibold">{product.name}</h5>
-                                                <p className="text-muted">{product.description}</p>
-                                                <p className="fw-bold text-success">₹{product.price}</p>
-
-                                                <div className="d-flex justify-content-center gap-2">
-                                                    <Link to={`/product/${product.id}`}>
-                                                        <button className="btn btn-outline-primary">
-                                                            View Details
-                                                        </button>
-                                                    </Link>
-
-                                                    <button
-                                                        className={`btn ${addedProducts.includes(product.id)
+                                        {/* 🌊 Product Info */}
+                                        <div className="card-body text-center">
+                                            <h5 className="card-title fw-semibold">{product.name}</h5>
+                                            <p className="text-muted small">{product.description}</p>
+                                            <p className="fw-bold text-success mb-3">
+                                                ₹{product.price}
+                                            </p>
+                                            <div className="d-flex justify-content-center gap-2">
+                                                <Link to={`/product/${product.id}`}>
+                                                    <button className="btn btn-outline-primary">
+                                                        View Details
+                                                    </button>
+                                                </Link>
+                                                <button
+                                                    className={`btn ${addedProducts.includes(product.id)
                                                             ? "btn-success"
                                                             : "btn-outline-success"
-                                                            }`}
-                                                        onClick={() => handleAddToCart(product)}
-
-                                                        style={{
-                                                            transition: "all 0.3s ease",
-                                                            minWidth: "120px",
-                                                        }}
-
-                                                    >
-                                                        {addedProducts.includes(product.id)
-                                                            ? "Added ✅"
-                                                            : "Add to Cart"}
-                                                    </button>
-                                                </div>
+                                                        }`}
+                                                    onClick={() => handleAddToCart(product)}
+                                                    style={{
+                                                        transition: "all 0.3s ease",
+                                                        minWidth: "120px",
+                                                    }}
+                                                >
+                                                    {addedProducts.includes(product.id)
+                                                        ? "Added ✅"
+                                                        : "Add to Cart"}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-center text-white py-5">
-                                    <h4>No products found matching "{searchTerm}" 😔</h4>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
-        </div >
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="text-center text-white py-5">
+                                <h4>No products found matching "{searchTerm}" 😔</h4>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            )}
+        </motion.div>
     );
 };
 

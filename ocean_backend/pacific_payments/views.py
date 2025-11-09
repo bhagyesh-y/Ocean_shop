@@ -20,6 +20,7 @@ from django.http import FileResponse ,Http404
 from django.db.models import Sum,Count
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
+from datetime import timedelta
 
 @csrf_exempt
 def create_order(request):
@@ -78,7 +79,7 @@ def create_order(request):
 @csrf_exempt
 def verify_payment(request):
     """
-    ✅ Verify payment securely.
+     Verify payment securely.
     Checks if the order belongs to the user who created it.
     Updates order status after successful verification.
     Logs payment history for each successful payment.
@@ -91,7 +92,7 @@ def verify_payment(request):
             if not user_id:
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
-            # ✅ Ensure the user exists
+            # Ensure the user exists
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
@@ -99,17 +100,17 @@ def verify_payment(request):
 
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-            # ✅ Step 1: Verify Razorpay signature
+            # Step 1: Verify Razorpay signature
             client.utility.verify_payment_signature({
                 "razorpay_order_id": data["razorpay_order_id"],
                 "razorpay_payment_id": data["razorpay_payment_id"],
                 "razorpay_signature": data["razorpay_signature"],
             })
 
-            # ✅ Step 2: Fetch payment info
+            #  Step 2: Fetch payment info
             payment_info = client.payment.fetch(data["razorpay_payment_id"])
 
-            # ✅ Step 3: Find and update order for this user
+            # Step 3: Find and update order for this user
             order = OceanOrder.objects.get(order_id=data["razorpay_order_id"], user=user)
             order.is_paid = True
             order.payment_id = data["razorpay_payment_id"]
@@ -120,7 +121,7 @@ def verify_payment(request):
             order.currency = payment_info.get("currency", "INR")
             order.save()
 
-            # ✅ Step 4: Create Payment History record
+            # Step 4: Create Payment History record
             payment_history=PaymentHistory.objects.create(
                 user=user,
                 order_id=data["razorpay_order_id"],
@@ -129,10 +130,22 @@ def verify_payment(request):
                 method=order.method or payment_info.get("method", "unknown"),
                 status="success",
             )
-            # Generating and emailing invoice 
-            invoice = save_and_email_invoice(order=order, user=user, payment=payment_history)
+            # step 5 create and email invoice 
+            invoice, created = OceanInvoice.objects.get_or_create(
+                payment=payment_history,
+                defaults={
+                    "user": user,
+                    "order": order,
+                    "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
+                    "issue_date": timezone.now(),
+                    "due_date": timezone.now() + timedelta(days=7),
+                },
+            )
+            # ✅ Step 6: Generate & send invoice (only if newly created)
+            if created:
+                save_and_email_invoice(order=order, user=user, payment=payment_history)
 
-            print(f"✅ Payment verified and logged for user {user.username}, order {order.order_id}")
+            print(f"✅ Payment verified and invoice handled for user {user.username}, order {order.order_id}")
             return JsonResponse({"status": "Payment Successful"})
 
         except OceanOrder.DoesNotExist:
@@ -197,7 +210,8 @@ class UserPaymentHistoryView(generics.ListAPIView):
 @login_required
 def download_invoice(request,invoice_id):
     try:
-        invoice=OceanInvoice.objects.get(id=invoice_id,order_user=request.user)
+        invoice=OceanInvoice.objects.get(id=invoice_id,user=request.user)
+        return FileResponse(invoice.pdf_file.open('rb'),as_attachment=True,filename=f"invoice_{invoice.id}.pdf")
     except OceanInvoice.DoesNotExist:
         raise Http404("Invoices not found")
     if not invoice.pdf_file:

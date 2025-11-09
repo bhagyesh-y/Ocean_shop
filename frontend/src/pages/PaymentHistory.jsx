@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast, Bounce } from "react-toastify";
+import { motion } from "framer-motion";
 
 const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
@@ -41,18 +42,25 @@ const PaymentHistory = () => {
         fetchPayments();
     }, []);
 
-    // Fetch Payment Analytics
+    // Fetch analytics
     useEffect(() => {
         const fetchAnalytics = async () => {
             const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
             const res = await fetch("http://127.0.0.1:8000/api/payments/analytics/user/", {
-                headers: { Authorization: `Bearer ${tokens.access}` }
+                headers: { Authorization: `Bearer ${tokens.access}` },
             });
             const data = await res.json();
             setAnalytics(data);
         };
         fetchAnalytics();
     }, []);
+
+    // 🌊 Page Fade-in Animation
+    const pageFade = {
+        hidden: { opacity: 0, y: 40 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    };
+
     // 🌀 Loading State
     if (loading) {
         return (
@@ -62,11 +70,14 @@ const PaymentHistory = () => {
         );
     }
 
-    // 🪸 No Payment History
+    // 🪸 Empty Payment History
     if (payments.length === 0) {
         return (
-            <div
+            <motion.div
                 className="container text-center py-5"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
                 style={{
                     minHeight: "80vh",
                     background: "linear-gradient(180deg, #caf0f8 0%, #ade8f4 100%)",
@@ -75,51 +86,61 @@ const PaymentHistory = () => {
             >
                 <h3 className="fw-bold text-primary mt-5">No Payments Yet 💳</h3>
                 <p className="text-muted">Your completed orders will appear here.</p>
-            </div>
+            </motion.div>
         );
     }
 
-    //  Payment History Table
+    // 🌊 Payment History Page
     return (
-        <div
+        <motion.div
             className="container py-5"
+            variants={pageFade}
+            initial="hidden"
+            animate="visible"
             style={{
                 minHeight: "80vh",
                 background: "linear-gradient(180deg, #90e0ef 0%, #0077b6 100%)",
                 borderRadius: "15px",
-                transition: "all 0.4s ease",
+                overflow: "hidden",
             }}
         >
-            <h2 className="text-center text-white fw-bold mb-4">
-                🌊 Payment History
-            </h2>
-            {/* Analytics View */}
+            <h2 className="text-center text-white fw-bold mb-4">🌊 Payment History</h2>
+
+            {/* Analytics Section */}
             {analytics && (
-                <div className="row mb-3">
-                    <div className="col-sm-4">
-                        <div className="card p-3">
+                <motion.div
+                    className="row mb-4 g-3"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <div className="col-sm-4 col-12">
+                        <div className="card text-center p-3 shadow-sm ocean-analytics">
                             <h6>Total Spent</h6>
-                            <h4>₹{analytics.total_spent}</h4>
+                            <h4 className="fw-bold text-primary">₹{analytics.total_spent}</h4>
                         </div>
                     </div>
-                    <div className="col-sm-4">
-                        <div className="card p-3">
+                    <div className="col-sm-4 col-12">
+                        <div className="card text-center p-3 shadow-sm ocean-analytics">
                             <h6>Total Payments</h6>
-                            <h4>{analytics.total_payments}</h4>
+                            <h4 className="fw-bold text-success">{analytics.total_payments}</h4>
                         </div>
                     </div>
-                    <div className="col-sm-4">
-                        <div className="card p-3">
+                    <div className="col-sm-4 col-12">
+                        <div className="card text-center p-3 shadow-sm ocean-analytics">
                             <h6>Top Methods</h6>
-                            {analytics.per_method.map(m => (
-                                <div key={m.method}>{m.method}: ₹{m.sum} ({m.count})</div>
+                            {analytics.per_method.map((m) => (
+                                <div key={m.method}>
+                                    {m.method}: ₹{m.sum} ({m.count})
+                                </div>
                             ))}
                         </div>
                     </div>
-                </div>
+                </motion.div>
             )}
+
             {/* Table View for Desktop */}
-            <div className="table-responsive d-none d-sm-block shadow-lg rounded-4 overflow-hidden">
+            <div className="table-responsive d-none d-md-block shadow-lg rounded-4 overflow-hidden">
                 <table className="table table-striped align-middle text-center bg-white">
                     <thead className="table-info">
                         <tr>
@@ -129,6 +150,7 @@ const PaymentHistory = () => {
                             <th>Method</th>
                             <th>Status</th>
                             <th>Date</th>
+                            <th>Invoice</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -145,10 +167,10 @@ const PaymentHistory = () => {
                                 <td>
                                     <span
                                         className={`badge px-3 py-2 rounded-pill ${payment.status === "success"
-                                            ? "bg-success"
-                                            : payment.status === "failed"
-                                                ? "bg-danger"
-                                                : "bg-warning text-dark"
+                                                ? "bg-success"
+                                                : payment.status === "failed"
+                                                    ? "bg-danger"
+                                                    : "bg-warning text-dark"
                                             }`}
                                     >
                                         {payment.status.toUpperCase()}
@@ -162,9 +184,10 @@ const PaymentHistory = () => {
                                 </td>
                                 <td>
                                     <a
-                                        href={`http://127.0.0.1:8000/api/payments/invoice/download/${payment.invoice_id}/`}
+                                        href={`http://127.0.0.1:8000/api/payments/download-invoice/${payment.invoice_id}/`}
                                         className="btn btn-sm btn-outline-primary"
-                                        target="_blank" rel="noreferrer"
+                                        target="_blank"
+                                        rel="noreferrer"
                                     >
                                         Download
                                     </a>
@@ -175,58 +198,76 @@ const PaymentHistory = () => {
                 </table>
             </div>
 
-            {/* 🌊 Card View for Mobile */}
-            <div className="d-block d-sm-none">
+            {/* Mobile View Cards with Scroll Animation */}
+            <motion.div
+                className="d-block d-md-none mt-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                    display: "flex",
+                    overflowX: "auto",
+                    gap: "15px",
+                    padding: "10px",
+                    scrollSnapType: "x mandatory",
+                }}
+            >
                 {payments.map((payment, index) => (
-                    <div
+                    <motion.div
                         key={index}
-                        className="card mb-3 shadow-sm"
+                        className="card shadow-sm p-3"
+                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 40 }}
+                        transition={{ duration: 0.4 }}
                         style={{
-                            borderRadius: "12px",
-                            backgroundColor: "rgba(255, 255, 255, 0.9)",
+                            flex: "0 0 85%",
+                            scrollSnapAlign: "center",
+                            borderRadius: "15px",
+                            background: "rgba(255, 255, 255, 0.95)",
+                            backdropFilter: "blur(5px)",
                             border: "none",
                         }}
                     >
-                        <div className="card-body">
-                            <h6 className="fw-bold text-primary">
-                                Order ID: <span className="text-dark">{payment.order_id}</span>
-                            </h6>
-                            <p className="mb-1">
-                                <strong>Payment ID:</strong> {payment.payment_id}
-                            </p>
-                            <p className="mb-1">
-                                <strong>Amount:</strong> ₹{payment.amount}
-                            </p>
-                            <p className="mb-1">
-                                <strong>Method:</strong>{" "}
-                                <span className="badge bg-info text-dark">
-                                    {payment.method ? payment.method.toUpperCase() : "N/A"}
-                                </span>
-                            </p>
-                            <p className="mb-1">
-                                <strong>Status:</strong>{" "}
-                                <span
-                                    className={`badge ${payment.status === "success"
+                        <h6 className="fw-bold text-primary">Order ID: {payment.order_id}</h6>
+                        <p className="mb-1"><strong>Payment ID:</strong> {payment.payment_id}</p>
+                        <p className="mb-1"><strong>Amount:</strong> ₹{payment.amount}</p>
+                        <p className="mb-1">
+                            <strong>Method:</strong>{" "}
+                            <span className="badge bg-info text-dark">
+                                {payment.method ? payment.method.toUpperCase() : "N/A"}
+                            </span>
+                        </p>
+                        <p className="mb-1">
+                            <strong>Status:</strong>{" "}
+                            <span
+                                className={`badge ${payment.status === "success"
                                         ? "bg-success"
                                         : payment.status === "failed"
                                             ? "bg-danger"
                                             : "bg-warning text-dark"
-                                        }`}
-                                >
-                                    {payment.status.toUpperCase()}
-                                </span>
-                            </p>
-                            <p className="text-muted small">
-                                {new Date(payment.created_at).toLocaleString("en-IN", {
-                                    dateStyle: "medium",
-                                    timeStyle: "short",
-                                })}
-                            </p>
-                        </div>
-                    </div>
+                                    }`}
+                            >
+                                {payment.status.toUpperCase()}
+                            </span>
+                        </p>
+                        <p className="text-muted small">
+                            {new Date(payment.created_at).toLocaleString("en-IN", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                            })}
+                        </p>
+                        <a
+                            href={`http://127.0.0.1:8000/api/payments/download-invoice/${payment.invoice_id}/`}
+                            className="btn btn-outline-primary btn-sm w-100 mt-2"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Download Invoice
+                        </a>
+                    </motion.div>
                 ))}
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

@@ -147,3 +147,11 @@ footer {
   pointer-events: none;
   z-index: 1;
 }
+/* payment history */
+.ocean-analytics {
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+.ocean-analytics:hover {
+  transform: translateY(-4px);
+}

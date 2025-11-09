@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import timedelta
 
 class OceanOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ocean_orders")
@@ -47,7 +48,8 @@ class OceanInvoice(models.Model):
     order = models.ForeignKey('OceanOrder',on_delete=models.CASCADE,related_name='invoices')
     invoice_number = models.CharField(max_length=100,unique = True)
     invoice_date = models.DateField(auto_now_add=True)
-    due_date = models.DateField()
+    issue_date = models.DateTimeField(default=timezone.now)
+    due_date = models.DateTimeField(blank=True, null=True)
     payment=models.ForeignKey(PaymentHistory,on_delete=models.CASCADE,related_name='invoices')
     pdf_file=models.FileField(upload_to='invoices/',null=True,blank=True)
     

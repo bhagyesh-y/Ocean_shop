@@ -1,100 +1,230 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice | OceanCart</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        color: #222;
-      }
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-      }
-      .brand {
-        font-size: 22px;
-        color: #0077b6;
-        font-weight: 700;
-      }
-      .meta {
-        text-align: right;
-      }
-      .box {
-        background: #f6fcff;
-        padding: 12px;
-        border-radius: 8px;
-        margin: 12px 0;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 12px;
-      }
-      th,
-      td {
-        padding: 10px;
-        border-bottom: 1px solid #e6eef6;
-        text-align: left;
-      }
-      th {
-        background: #e6f4fb;
-        color: #023e8a;
-      }
-      .total {
-        font-weight: 700;
-        font-size: 16px;
-        text-align: right;
-        padding-top: 12px;
-      }
-      footer {
-        margin-top: 20px;
-        font-size: 12px;
-        color: #666;
-      }
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            color: #333;
+            background: #f5f9fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .invoice-wrapper {
+            max-width: 850px;
+            margin: 25px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #0077b6, #00b4d8);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin: 0;
+        }
+
+        .header img {
+            height: 55px;
+        }
+
+        /* INFO SECTION */
+        .info-section {
+            padding: 20px 35px;
+            border-bottom: 1.5px solid #d9f3f9;
+        }
+
+        .info-flex {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-box {
+            width: 48%;
+        }
+
+        .info-box h3 {
+            color: #0077b6;
+            font-size: 16px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #caf0f8;
+            padding-bottom: 5px;
+        }
+
+        .info-box p {
+            margin: 4px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+
+        th {
+            background-color: #caf0f8;
+            text-align: left;
+            padding: 10px;
+            color: #03045e;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        /* TOTALS */
+        .summary {
+            text-align: right;
+            padding: 20px 35px;
+            background: #f1faff;
+        }
+
+        .summary p {
+            font-size: 15px;
+            margin: 6px 0;
+        }
+
+        .summary strong {
+            color: #0077b6;
+            font-size: 18px;
+        }
+
+        /* SIGNATURE */
+        .signature {
+            padding: 30px 35px;
+            text-align: right;
+        }
+
+        .signature img {
+            height: 45px;
+        }
+
+        .signature p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #0077b6;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #caf0f8;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .info-box {
+                width: 100%;
+            }
+        }
     </style>
-  </head>
-  <body>
-    <header>
-      <div class="brand">OceanCart</div>
-      <div class="meta">
-        <div>Invoice: {{ order.order_id }}</div>
-        <div>Date: {{ payment.created_at|date:"d M Y, H:i" }}</div>
-      </div>
-    </header>
+</head>
+<body>
+    <div class="invoice-wrapper">
 
-    <div class="box">
-      <strong>Billed to:</strong>
-      <div>{{ user.first_name }} ({{ user.email }})</div>
+        <!-- HEADER -->
+        <div class="header">
+            <h1>OceanCart Invoice</h1>
+            <img src="{{ company_logo }}" alt="OceanCart Logo">
+        </div>
+
+        <!-- BILLING INFO -->
+        <div class="info-section">
+            <div class="info-flex">
+                <div class="info-box">
+                    <h3>Billed To:</h3>
+                    <p><strong>{{ user.get_full_name }}</strong><br>
+                        {{ user.email }}<br>
+                        {% if user.profile.address %}{{ user.profile.address }}<br>{% endif %}
+                        {% if user.profile.city %}{{ user.profile.city }}, {% endif %}{% if user.profile.state %}{{ user.profile.state }}{% endif %}<br>
+                        {% if user.profile.phone %}📞 {{ user.profile.phone }}{% endif %}
+                    </p>
+                </div>
+
+                <div class="info-box" style="text-align:right;">
+                    <h3>Invoice Info:</h3>
+                    <p><strong>Invoice #:</strong> {{ order.order_id }}<br>
+                       <strong>Date:</strong> {{ date|date:"d M Y, H:i" }}<br>
+                       <strong>Status:</strong> {{ order.status|upper }}<br>
+                       <strong>Payment ID:</strong> {{ payment.payment_id }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ITEMS TABLE -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.product.price }}</td>
+                    <td>₹{{ item.quantity|floatformat:0|add:item.product.price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align:center;">No items found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- TOTALS -->
+        <div class="summary">
+            <p>Subtotal: ₹{{ order.amount }}</p>
+            <p>Tax (0%): ₹0.00</p>
+            <p><strong>Total Amount: ₹{{ order.amount }}</strong></p>
+        </div>
+
+        <!-- SIGNATURE -->
+        <div class="signature">
+            <p>Authorized Signature</p>
+            <img src="https://i.ibb.co/zFp5z4t/signature.png" alt="Authorized Signature">
+            <p><strong>OceanCart Billing Department</strong></p>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>Thank you for shopping with <strong>OceanCart 🌊</strong></p>
+            <p>Need help? Contact us at <a href="mailto:support@oceancart.example">support@oceancart.example</a></p>
+            <p>© {{ date|date:"Y" }} OceanCart. All rights reserved.</p>
+        </div>
     </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Qty</th>
-          <th>Unit Price</th>
-          <th>Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in order.items %}
-        <tr>
-          <td>{{ item.product_name }}</td>
-          <td>{{ item.quantity }}</td>
-          <td>₹{{ item.unit_price }}</td>
-          <td>₹{{ item.subtotal }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="total">Total: ₹{{ order.amount }}</div>
-
-    <footer>
-      Thank you for shopping with OceanCart. If you have any questions, contact
-      support@oceancart.example
-    </footer>
-  </body>
+</body>
 </html>
