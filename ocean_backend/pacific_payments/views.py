@@ -207,18 +207,32 @@ class UserPaymentHistoryView(generics.ListAPIView):
     def get_queryset(self):
         return PaymentHistory.objects.filter(user=self.request.user).order_by("-created_at")
 
-@login_required
-def download_invoice(request,invoice_id):
+from django.http import FileResponse, Http404
+from django.contrib.auth.decorators import login_required
+from .models import OceanInvoice
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_invoice(request, invoice_id):
     try:
-        invoice=OceanInvoice.objects.get(id=invoice_id,user=request.user)
-        return FileResponse(invoice.pdf_file.open('rb'),as_attachment=True,filename=f"invoice_{invoice.id}.pdf")
+        # Ensure invoice belongs to the logged-in user
+        invoice = OceanInvoice.objects.get(id=invoice_id, user=request.user)
     except OceanInvoice.DoesNotExist:
-        raise Http404("Invoices not found")
-    if not invoice.pdf_file:
-        raise Http404("Invoice PDF not available")
-    return FileResponse(invoice.pdf_file.open('rb'),as_attachment=True,filename=f"invoice_{invoice.id}")
+        raise Http404("Invoice not found for this user.")
 
+    # Check if PDF exists before serving
+    if not invoice.pdf_file or not invoice.pdf_file.name:
+        raise Http404("Invoice PDF not available. Please contact support.")
 
+    # Return the file as downloadable attachment
+    return FileResponse(
+        invoice.pdf_file.open('rb'),
+        as_attachment=True,
+        filename=f"OceanInvoice_{invoice.invoice_number or invoice.id}.pdf",
+        content_type="application/pdf"
+    )
+
+# api to get payment analytics for logged in user 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_analytics_user(request):

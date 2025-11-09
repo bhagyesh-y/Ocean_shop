@@ -6,6 +6,47 @@ const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [analytics, setAnalytics] = useState(null);
+    // download invoice function 
+    const handleDownloadInvoice = async (invoiceId, orderId) => {
+        try {
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+            const accessToken = tokens?.access;
+
+            if (!accessToken) {
+                toast.error("Please log in to download invoices", { theme: "colored" });
+                return;
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/payments/download-invoice/${invoiceId}/`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                toast.error("Failed to download invoice", { theme: "colored" });
+                console.error("Response error:", response.status);
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `OceanInvoice_${orderId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Error downloading invoice:", err);
+            toast.error("Error downloading invoice", { theme: "colored" });
+        }
+    };
+
 
     // Fetch payment history
     useEffect(() => {
@@ -167,10 +208,10 @@ const PaymentHistory = () => {
                                 <td>
                                     <span
                                         className={`badge px-3 py-2 rounded-pill ${payment.status === "success"
-                                                ? "bg-success"
-                                                : payment.status === "failed"
-                                                    ? "bg-danger"
-                                                    : "bg-warning text-dark"
+                                            ? "bg-success"
+                                            : payment.status === "failed"
+                                                ? "bg-danger"
+                                                : "bg-warning text-dark"
                                             }`}
                                     >
                                         {payment.status.toUpperCase()}
@@ -183,14 +224,12 @@ const PaymentHistory = () => {
                                     })}
                                 </td>
                                 <td>
-                                    <a
-                                        href={`http://127.0.0.1:8000/api/payments/download-invoice/${payment.invoice_id}/`}
+                                    <button
                                         className="btn btn-sm btn-outline-primary"
-                                        target="_blank"
-                                        rel="noreferrer"
+                                        onClick={() => handleDownloadInvoice(payment.invoice_id, payment.order_id)}
                                     >
                                         Download
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -241,10 +280,10 @@ const PaymentHistory = () => {
                             <strong>Status:</strong>{" "}
                             <span
                                 className={`badge ${payment.status === "success"
-                                        ? "bg-success"
-                                        : payment.status === "failed"
-                                            ? "bg-danger"
-                                            : "bg-warning text-dark"
+                                    ? "bg-success"
+                                    : payment.status === "failed"
+                                        ? "bg-danger"
+                                        : "bg-warning text-dark"
                                     }`}
                             >
                                 {payment.status.toUpperCase()}

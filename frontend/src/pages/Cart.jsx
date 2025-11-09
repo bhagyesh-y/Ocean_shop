@@ -72,7 +72,7 @@ const Cart = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     amount: amount,
-                    user_id: user_id, // ✅ include user id
+                    user_id: user_id, // include user id
                 }),
             });
 
