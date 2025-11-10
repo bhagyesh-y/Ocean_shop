@@ -78,12 +78,6 @@ def create_order(request):
 
 @csrf_exempt
 def verify_payment(request):
-    """
-     Verify payment securely.
-    Checks if the order belongs to the user who created it.
-    Updates order status after successful verification.
-    Logs payment history for each successful payment.
-    """
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -92,25 +86,20 @@ def verify_payment(request):
             if not user_id:
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
-            # Ensure the user exists
-            try:
-                user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                return JsonResponse({"error": "User not found"}, status=404)
-
+            user = User.objects.get(id=user_id)
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-            # Step 1: Verify Razorpay signature
+            # Step 1: Verify signature
             client.utility.verify_payment_signature({
                 "razorpay_order_id": data["razorpay_order_id"],
                 "razorpay_payment_id": data["razorpay_payment_id"],
                 "razorpay_signature": data["razorpay_signature"],
             })
 
-            #  Step 2: Fetch payment info
+            # Step 2: Fetch payment info
             payment_info = client.payment.fetch(data["razorpay_payment_id"])
 
-            # Step 3: Find and update order for this user
+            # Step 3: Update order
             order = OceanOrder.objects.get(order_id=data["razorpay_order_id"], user=user)
             order.is_paid = True
             order.payment_id = data["razorpay_payment_id"]
@@ -121,42 +110,33 @@ def verify_payment(request):
             order.currency = payment_info.get("currency", "INR")
             order.save()
 
-            # Step 4: Create Payment History record
-            payment_history=PaymentHistory.objects.create(
+            # Step 4: Payment history
+            payment_history = PaymentHistory.objects.create(
                 user=user,
-                order_id=data["razorpay_order_id"],
-                payment_id=data["razorpay_payment_id"],
+                order_id=order.order_id,
+                payment_id=order.payment_id,
                 amount=order.amount,
-                method=order.method or payment_info.get("method", "unknown"),
+                method=order.method or "unknown",
                 status="success",
             )
-            # step 5 create and email invoice 
-            invoice, created = OceanInvoice.objects.get_or_create(
-                payment=payment_history,
-                defaults={
-                    "user": user,
-                    "order": order,
-                    "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
-                    "issue_date": timezone.now(),
-                    "due_date": timezone.now() + timedelta(days=7),
-                },
-            )
-            # ✅ Step 6: Generate & send invoice (only if newly created)
-            if created:
-                save_and_email_invoice(order=order, user=user, payment=payment_history)
 
-            print(f"✅ Payment verified and invoice handled for user {user.username}, order {order.order_id}")
+            # ✅ Step 5: Generate and link invoice
+            invoice = save_and_email_invoice(order=order, user=user, payment=payment_history)
+
+            # ✅ Make sure the invoice references this payment
+            if not invoice.payment:
+                invoice.payment = payment_history
+                invoice.save()
+
+            print(f"✅ Payment verified for {user.username}, invoice #{invoice.id}")
             return JsonResponse({"status": "Payment Successful"})
 
-        except OceanOrder.DoesNotExist:
-            return JsonResponse({"status": "Order not found for this user"}, status=403)
-        except razorpay.errors.SignatureVerificationError:
-            return JsonResponse({"status": "Signature verification failed"}, status=400)
         except Exception as e:
             print("❌ Payment verification error:", e)
             return JsonResponse({"status": "Payment Verification Failed", "error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 # webhook to handle razorpay payment status updates 
 @csrf_exempt

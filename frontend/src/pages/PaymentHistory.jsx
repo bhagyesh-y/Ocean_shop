@@ -6,6 +6,7 @@ const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [analytics, setAnalytics] = useState(null);
+
     // download invoice function 
     const handleDownloadInvoice = async (invoiceId, orderId) => {
         try {
@@ -82,6 +83,14 @@ const PaymentHistory = () => {
 
         fetchPayments();
     }, []);
+
+
+    // logging one payment object for texting purpose
+    useEffect(() => {
+        if (payments.length > 0) {
+            console.log("🧾 Example Payment Object:", payments[0]);
+        }
+    }, [payments]);
 
     // Fetch analytics
     useEffect(() => {
@@ -227,6 +236,7 @@ const PaymentHistory = () => {
                                     <button
                                         className="btn btn-sm btn-outline-primary"
                                         onClick={() => handleDownloadInvoice(payment.invoice_id, payment.order_id)}
+
                                     >
                                         Download
                                     </button>
@@ -295,14 +305,12 @@ const PaymentHistory = () => {
                                 timeStyle: "short",
                             })}
                         </p>
-                        <a
-                            href={`http://127.0.0.1:8000/api/payments/download-invoice/${payment.invoice_id}/`}
+                        <button
                             className="btn btn-outline-primary btn-sm w-100 mt-2"
-                            target="_blank"
-                            rel="noreferrer"
+                            onClick={() => handleDownloadInvoice(payment.invoice_id, payment.order_id)}
                         >
                             Download Invoice
-                        </a>
+                        </button>
                     </motion.div>
                 ))}
             </motion.div>

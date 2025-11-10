@@ -34,6 +34,7 @@ class RazorpayWebhookLog(models.Model):
 class PaymentHistory(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
     order_id = models.CharField(max_length=100)
+    invoice_id=models.CharField(max_length=100,blank=True,null=True)
     payment_id = models.CharField(max_length=100)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     method = models.CharField(max_length=50, blank=True, null=True)
