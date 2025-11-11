@@ -38,6 +38,7 @@ const PaymentHistory = () => {
             const link = document.createElement("a");
             link.href = url;
             link.download = `OceanInvoice_${orderId}.pdf`;
+            toast.success("Invoive downloaded successfully",{theme:"colored",transition:Bounce});
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -83,15 +84,6 @@ const PaymentHistory = () => {
 
         fetchPayments();
     }, []);
-
-
-    // logging one payment object for texting purpose
-    useEffect(() => {
-        if (payments.length > 0) {
-            console.log("🧾 Example Payment Object:", payments[0]);
-        }
-    }, [payments]);
-
     // Fetch analytics
     useEffect(() => {
         const fetchAnalytics = async () => {

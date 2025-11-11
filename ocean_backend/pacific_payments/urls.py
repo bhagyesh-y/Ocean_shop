@@ -8,5 +8,6 @@ urlpatterns = [
     path("history/",views.UserPaymentHistoryView.as_view(),name="payment_history"),
     path('download-invoice/<int:invoice_id>/',views.download_invoice,name='download_invoice'),
     path("analytics/user/", views.payment_analytics_user, name="payment_analytics_user"),
+    path("recent/",views.recent_payments,name= "recent_payments"),
 ]
 

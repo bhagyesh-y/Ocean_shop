@@ -2,11 +2,13 @@ import React, { useContext, useEffect, useState } from "react";
 import { CartContext } from "../context/Cartcontext";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
+import { motion } from "framer-motion";
 
 const Cart = () => {
     const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext);
     const [fadeIn, setFadeIn] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [loadingPayment, setLoadingPayment] = useState(false); // 🌀 Loader
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,7 +22,6 @@ const Cart = () => {
                 const accessToken = tokens?.access;
 
                 if (!user || !accessToken) return;
-                //fetch cart from backend API
                 const response = await fetch("http://127.0.0.1:8000/api/cart/", {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -29,7 +30,7 @@ const Cart = () => {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    setCart(data) // ✅ update CartContext
+                    setCart(data);
                 } else {
                     console.error("Failed to fetch user cart");
                 }
@@ -57,33 +58,35 @@ const Cart = () => {
 
     const confirmCheckout = async () => {
         try {
+            setLoadingPayment(true); // 🌀 Start loader
+
             const user = JSON.parse(localStorage.getItem("oceanUser"));
             const user_id = user?.id;
 
             if (!user_id) {
                 toast.error("Please log in before checkout.", { theme: "colored" });
+                setLoadingPayment(false);
                 return;
             }
 
             const amount = totalPrice;
-            //  Create order in Django + Razorpay
+
             const response = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     amount: amount,
-                    user_id: user_id, // include user id
+                    user_id: user_id,
                 }),
             });
 
             const data = await response.json();
-            console.log("✅ Order response:", data);
             if (!data.key || !data.order_id) {
                 toast.error("Payment setup failed. Try again!", { theme: "colored" });
+                setLoadingPayment(false);
                 return;
             }
 
-            //  Razorpay Checkout
             const options = {
                 key: data.key,
                 amount: data.amount * 100,
@@ -95,49 +98,51 @@ const Cart = () => {
                 method: ["upi", "card", "wallet", "netbanking", "paylater"],
 
                 handler: async function (response) {
-                    console.log("💰 Payment Response", response);
+                    try {
+                        const verifyResponse = await fetch(
+                            "http://127.0.0.1:8000/api/payments/verify-payment/",
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    user_id: user_id,
+                                }),
+                            }
+                        );
 
-                    //  Verify payment in Django
-                    const verifyResponse = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            user_id: user_id, // send user ID for mapping
-                        }),
-                    });
+                        const verifyData = await verifyResponse.json();
 
-                    const verifyData = await verifyResponse.json();
-                    console.log("Verify response:", verifyData);
+                        if (verifyData.status === "Payment Successful") {
+                            toast.success("Payment Successful 🌊", { theme: "colored" });
 
-                    if (verifyData.status === "Payment Successful") {
-                        toast.success("Payment Successful 🌊", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            theme: "colored",
-                            transition: Bounce,
-                        });
-                        clearCart();
-                        navigate("/payment-history");
-                    } else {
-                        toast.error("Payment verification failed.", { theme: "colored" });
+                            // Optional: small success flash before redirect
+                            setTimeout(() => {
+                                clearCart();
+                                navigate("/payment-history");
+                            }, 1000);
+                        } else {
+                            toast.error("Payment verification failed.", { theme: "colored" });
+                        }
+                    } catch (err) {
+                        toast.error("Error verifying payment.", { theme: "colored" });
+                    } finally {
+                        setLoadingPayment(false); // ✅ Stop loader after completion
+                        setShowModal(false);
                     }
-
-                    setShowModal(false);
                 },
-                // prefill user details
                 prefill: {
                     name: user?.first_name || "Ocean User",
                     email: user?.email || "test@example.com",
                     contact: "9588459493",
                 },
-                theme: { color: "#0077b6" },
             };
 
             if (!window.Razorpay) {
                 alert("Razorpay SDK not loaded properly. Check your script tag.");
+                setLoadingPayment(false);
                 return;
             }
 
@@ -146,10 +151,10 @@ const Cart = () => {
         } catch (error) {
             console.error(error);
             toast.error("Something went wrong while processing payment.");
+            setLoadingPayment(false);
         }
     };
 
-    // Empty cart UI
     if (cart.length === 0) {
         return (
             <div
@@ -170,9 +175,9 @@ const Cart = () => {
         );
     }
 
-    //  Cart UI 
     return (
         <>
+            {/* 🛒 Main Cart UI */}
             <div
                 className={`container py-5 ocean-fade ${fadeIn ? "fade-in" : ""}`}
                 style={{
@@ -201,7 +206,6 @@ const Cart = () => {
                                 <tr key={item.id}>
                                     <td>
                                         <img
-                                            //  Using nested product image from backend data
                                             src={item.product?.image || item.image}
                                             alt={item.product?.name || item.name}
                                             style={{
@@ -212,17 +216,9 @@ const Cart = () => {
                                             }}
                                         />
                                     </td>
-
-                                    {/*  Product Name */}
                                     <td>{item.product?.name || item.name}</td>
-
-                                    {/* Product Price */}
                                     <td>₹{item.product?.price || item.price}</td>
-
-                                    {/*  Quantity */}
                                     <td>{item.quantity}</td>
-
-                                    {/*  Subtotal Calculation  */}
                                     <td>
                                         ₹
                                         {(
@@ -230,8 +226,6 @@ const Cart = () => {
                                                 item.quantity) || 0
                                         ).toFixed(2)}
                                     </td>
-
-                                    {/*Remove Button */}
                                     <td>
                                         <button
                                             className="btn btn-danger btn-sm"
@@ -261,7 +255,7 @@ const Cart = () => {
                 </div>
             </div>
 
-            {/*  Checkout Modal */}
+            {/* 🌊 Checkout Confirmation Modal */}
             {showModal && (
                 <div
                     className="modal fade show"
@@ -270,17 +264,9 @@ const Cart = () => {
                         backgroundColor: "rgba(0, 0, 0, 0.6)",
                     }}
                 >
-                    <div
-                        className="modal-dialog modal-dialog-centered"
-                        style={{
-                            maxWidth: "450px",
-                        }}
-                    >
+                    <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "450px" }}>
                         <div className="modal-content rounded-4 shadow-lg border-0">
-                            <div
-                                className="modal-header text-white"
-                                style={{ background: "#0077b6" }}
-                            >
+                            <div className="modal-header text-white" style={{ background: "#0077b6" }}>
                                 <h5 className="modal-title">Confirm Purchase</h5>
                                 <button
                                     type="button"
@@ -289,9 +275,7 @@ const Cart = () => {
                                 ></button>
                             </div>
                             <div className="modal-body text-center">
-                                <h5 className="fw-semibold mb-3 text-primary">
-                                    Total: ₹{totalPrice}
-                                </h5>
+                                <h5 className="fw-semibold mb-3 text-primary">Total: ₹{totalPrice}</h5>
                                 <p>Are you sure you want to place your order? 🌊</p>
                             </div>
                             <div className="modal-footer justify-content-center">
@@ -317,6 +301,57 @@ const Cart = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* 🌊 Loader Overlay During Payment */}
+            {loadingPayment && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center"
+                    style={{
+                        background: "rgba(0,0,0,0.6)",
+                        zIndex: 2000,
+                        color: "#fff",
+                    }}
+                >
+                    <motion.div
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        style={{
+                            width: "270px",
+                            height: "180px",
+                            background: "linear-gradient(180deg, #0077b6, #0096c7, #00b4d8)",
+                            borderRadius: "20px",
+                            textAlign: "center",
+                            padding: "30px",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: "100%",
+                                height: "12px",
+                                borderRadius: "5px",
+                                background:
+                                    "linear-gradient(90deg, #caf0f8 25%, #90e0ef 50%, #caf0f8 75%)",
+                                backgroundSize: "400% 100%",
+                                animation: "shimmer 1.3s infinite linear",
+                            }}
+                        ></div>
+                        <h5 className="fw-bold mt-4 mb-2">Processing Payment...</h5>
+                        <p style={{ fontSize: "14px" }}>Generating your invoice 🌊</p>
+
+                        <style>{`
+                            @keyframes shimmer {
+                                0% { background-position: 100% 0; }
+                                100% { background-position: -100% 0; }
+                            }
+                        `}</style>
+                    </motion.div>
+                </motion.div>
             )}
         </>
     );

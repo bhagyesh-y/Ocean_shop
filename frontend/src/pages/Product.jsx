@@ -4,6 +4,7 @@ import { CartContext } from "../context/Cartcontext.jsx";
 import { fetchProducts } from "../api/OceanAPI.js";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import "../index.css";
 
 const Products = () => {
     const [atlanticFade, setAtlanticFade] = useState(false);
@@ -70,7 +71,8 @@ const Products = () => {
 
     return (
         <motion.div
-            className={`container-fluid py-4 px-3 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
+            className={`container-fluid py-4 px-3 ${atlanticFade ? "opacity-100" : "opacity-0"
+                }`}
             style={{
                 transition: "opacity 1s ease, transform 0.6s ease",
                 transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
@@ -104,7 +106,8 @@ const Products = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={(e) =>
-                        (e.currentTarget.style.boxShadow = "0 0 10px rgba(0, 119, 182, 0.4)")
+                    (e.currentTarget.style.boxShadow =
+                        "0 0 10px rgba(0, 119, 182, 0.4)")
                     }
                     onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
                 />
@@ -165,59 +168,35 @@ const Products = () => {
                                         transition: { duration: 0.3 },
                                     }}
                                 >
-                                    <div
-                                        className="card h-100 shadow-sm border-0"
-                                        style={{
-                                            borderRadius: "15px",
-                                            overflow: "hidden",
-                                            background: "#fff",
-                                        }}
-                                    >
+                                    {/* 🧱 Updated Card for Equal Height + Consistent Layout */}
+                                    <div className="product-card">
                                         {/* 🌅 Product Image */}
                                         <motion.div
-                                            className="d-flex justify-content-center align-items-center bg-light"
-                                            style={{
-                                                height: "220px",
-                                                overflow: "hidden",
-                                            }}
+                                            className="product-image"
                                             whileHover={{ scale: 1.02 }}
                                             transition={{ duration: 0.4 }}
                                         >
-                                            <img
-                                                src={product.image}
-                                                alt={product.name}
-                                                className="card-img-top"
-                                                style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    objectFit: "contain",
-                                                }}
-                                            />
+                                            <img src={product.image} alt={product.name} />
                                         </motion.div>
 
                                         {/* 🌊 Product Info */}
-                                        <div className="card-body text-center">
-                                            <h5 className="card-title fw-semibold">{product.name}</h5>
-                                            <p className="text-muted small">{product.description}</p>
-                                            <p className="fw-bold text-success mb-3">
-                                                ₹{product.price}
-                                            </p>
+                                        <div className="product-body">
+                                            <h5>{product.name}</h5>
+                                            <p>{product.description}</p>
+                                            <p className="price">₹{product.price}</p>
+
                                             <div className="d-flex justify-content-center gap-2">
                                                 <Link to={`/product/${product.id}`}>
-                                                    <button className="btn btn-outline-primary">
+                                                    <button className="btn btn-outline-primary btn-sm">
                                                         View Details
                                                     </button>
                                                 </Link>
                                                 <button
-                                                    className={`btn ${addedProducts.includes(product.id)
+                                                    className={`btn btn-sm ${addedProducts.includes(product.id)
                                                             ? "btn-success"
                                                             : "btn-outline-success"
                                                         }`}
                                                     onClick={() => handleAddToCart(product)}
-                                                    style={{
-                                                        transition: "all 0.3s ease",
-                                                        minWidth: "120px",
-                                                    }}
                                                 >
                                                     {addedProducts.includes(product.id)
                                                         ? "Added ✅"

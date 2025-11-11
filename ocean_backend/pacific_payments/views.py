@@ -21,6 +21,8 @@ from django.db.models import Sum,Count
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
+from rest_framework.response import Response
+from .serializers import PaymentHistorySerializer
 
 @csrf_exempt
 def create_order(request):
@@ -225,3 +227,12 @@ def payment_analytics_user(request):
         "total_payments": total_payments,
         "per_method": list(per_method)
     })
+     
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def recent_payments (request):
+    payments=(
+        PaymentHistory.objects.filter(user=request.user).order_by("-created_at")[:5]
+            )
+    serializer= PaymentHistorySerializer(payments,many=True)
+    return Response(serializer.data)
