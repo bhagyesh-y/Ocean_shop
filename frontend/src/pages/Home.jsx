@@ -4,9 +4,9 @@ import { CartContext } from "../context/Cartcontext.jsx";
 import { fetchProducts } from "../api/OceanAPI.js";
 
 const Home = () => {
-    const [atlanticFade, setAtlanticFade] = useState(false);
+    const [atlanticFade, setAtlanticFade] = useState(false);// for fade in effect 
     const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
-    const { addToCart } = useContext(CartContext)
+    const { addToCart } = useContext(CartContext) //cart context
     const [loading, setLoading] = useState(true);// for loading 
     const [error, setError] = useState(null) // for error handling 
 
