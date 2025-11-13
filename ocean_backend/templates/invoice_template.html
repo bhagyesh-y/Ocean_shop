@@ -1,229 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice | OceanCart</title>
     <style>
         body {
-            font-family: 'Poppins', Arial, sans-serif;
-            color: #333;
-            background: #f5f9fc;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-        }
-
-        .invoice-wrapper {
-            max-width: 850px;
-            margin: 25px auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        /* HEADER */
-        .header {
-            background: linear-gradient(135deg, #0077b6, #00b4d8);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 26px;
-            margin: 0;
-        }
-
-        .header img {
-            height: 55px;
-        }
-
-        /* INFO SECTION */
-        .info-section {
-            padding: 20px 35px;
-            border-bottom: 1.5px solid #d9f3f9;
-        }
-
-        .info-flex {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .info-box {
-            width: 48%;
-        }
-
-        .info-box h3 {
-            color: #0077b6;
-            font-size: 16px;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #caf0f8;
-            padding-bottom: 5px;
-        }
-
-        .info-box p {
-            margin: 4px 0;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 25px 0;
-        }
-
-        th {
-            background-color: #caf0f8;
-            text-align: left;
-            padding: 10px;
-            color: #03045e;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        /* TOTALS */
-        .summary {
-            text-align: right;
-            padding: 20px 35px;
-            background: #f1faff;
-        }
-
-        .summary p {
-            font-size: 15px;
-            margin: 6px 0;
-        }
-
-        .summary strong {
-            color: #0077b6;
-            font-size: 18px;
-        }
-
-        /* SIGNATURE */
-        .signature {
-            padding: 30px 35px;
-            text-align: right;
-        }
-
-        .signature img {
-            height: 45px;
-        }
-
-        .signature p {
-            margin: 4px 0;
-            font-size: 14px;
-            color: #555;
-        }
-
-        /* FOOTER */
-        .footer {
-            background: #0077b6;
-            color: white;
-            text-align: center;
-            padding: 15px;
+            padding: 20px;
             font-size: 13px;
         }
 
-        .footer a {
-            color: #caf0f8;
-            text-decoration: none;
+        .header {
+            width: 100%;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0077b6;
         }
 
-        @media (max-width: 600px) {
-            .info-box {
-                width: 100%;
-            }
+        .company-info {
+            text-align: left;
+            line-height: 1.4;
         }
+
+        .company-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #0077b6;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+            color: #0077b6;
+        }
+
+        .info-box {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8fbff;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        th {
+            background: #caf0f8;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .total-row {
+            font-size: 16px;
+            font-weight: bold;
+            background: #e3f8ff;
+        }
+
+        .footer-msg {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .signature-box {
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        .signature-text {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
-    <div class="invoice-wrapper">
 
-        <!-- HEADER -->
-        <div class="header">
-            <h1>OceanCart Invoice</h1>
-           
-        </div>
-
-        <!-- BILLING INFO -->
-        <div class="info-section">
-            <div class="info-flex">
-                <div class="info-box">
-                    <h3>Billed To:</h3>
-                    <p><strong>{{ user.get_full_name }}</strong><br>
-                        {{ user.email }}<br>
-                        {% if user.profile.address %}{{ user.profile.address }}<br>{% endif %}
-                        {% if user.profile.city %}{{ user.profile.city }}, {% endif %}{% if user.profile.state %}{{ user.profile.state }}{% endif %}<br>
-                        {% if user.profile.phone %}📞 {{ user.profile.phone }}{% endif %}
-                    </p>
-                </div>
-
-                <div class="info-box" style="text-align:right;">
-                    <h3>Invoice Info:</h3>
-                    <p><strong>Invoice #:</strong> {{ order.order_id }}<br>
-                       <strong>Date:</strong> {{ date|date:"d M Y, H:i" }}<br>
-                       <strong>Status:</strong> {{ order.status|upper }}<br>
-                       <strong>Payment ID:</strong> {{ payment.payment_id }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ITEMS TABLE -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Unit Price</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.product.name }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>₹{{ item.product.price }}</td>
-                    <td>₹{{ item.quantity|floatformat:0|add:item.product.price }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align:center;">No items found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- TOTALS -->
-        <div class="summary">
-            <p>Subtotal: ₹{{ order.amount }}</p>
-            <p>Tax (0%): ₹0.00</p>
-            <p><strong>Total Amount: ₹{{ order.amount }}</strong></p>
-        </div>
-
-        <!-- SIGNATURE -->
-        <div class="signature">
-            <p>Authorized Signature</p>
-            <p><strong>OceanCart Billing Department</strong></p>
-        </div>
-
-        <!-- FOOTER -->
-        <div class="footer">
-            <p>Thank you for shopping with <strong>OceanCart 🌊</strong></p>
-            <p>Need help? Contact us at <a href="mailto:support@oceancart.example">support@oceancart.example</a></p>
-            <p>© {{ date|date:"Y" }} OceanCart. All rights reserved.</p>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="company-info">
+            <div class="company-title">OceanCart</div>
+            <div>123 Ocean Street, Coral Bay, Earth</div>
+            <div>Email: support@oceancart.com</div>
         </div>
     </div>
+
+    <!-- BILLING + INVOICE INFO -->
+    <table style="width:100%; margin-bottom: 10px;">
+        <tr>
+            <td style="width: 50%; vertical-align: top;">
+                <div class="section-title">Billed To:</div>
+                <div class="info-box">
+                    <strong>{{ user.first_name }} {{ user.last_name }}</strong><br>
+                    {{ user.email }}<br>
+                    {{ user.profile.address|default:"No address provided" }}
+                </div>
+            </td>
+
+            <td style="width: 50%; vertical-align: top;">
+                <div class="section-title">Invoice Info:</div>
+                <div class="info-box">
+                    Invoice #: {{ order.order_id }} <br>
+                    Date: {{ date|date:"d M Y" }} <br>
+                    Status: {{ payment.status|upper }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ITEMS TABLE -->
+    <div class="section-title">Order Summary</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Qty</th>
+                <th>Item</th>
+                <th>Unit Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.qty }}</td>
+                <td>{{ item.name }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>₹{{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+
+            <tr class="total-row">
+                <td colspan="3" style="text-align:right;">TOTAL AMOUNT:</td>
+                <td>₹{{ total }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- SIGNATURE -->
+    <div class="signature-box">
+        <div class="signature-text">Authorized Signature</div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-msg">
+        Thank you for shopping with OceanCart 🌊  
+        If you have any questions, contact support@oceancart.com
+    </div>
+
 </body>
 </html>

@@ -17,6 +17,7 @@ class PaymentHistorySerializer(serializers.ModelSerializer):
             "status",
             "created_at",
             "invoice_id",
+            "invoice_url",
         ]
 
     def get_invoice_id(self, obj):

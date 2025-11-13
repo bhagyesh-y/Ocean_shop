@@ -16,13 +16,15 @@ from .serializers import PaymentHistorySerializer
 from django.utils import timezone
 from .utils import save_and_email_invoice
 from .models import OceanInvoice
-from django.http import FileResponse ,Http404
+from django.http import FileResponse ,Http404,HttpResponse
+import requests
 from django.db.models import Sum,Count
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 from rest_framework.response import Response
 from .serializers import PaymentHistorySerializer
+
 
 @csrf_exempt
 def create_order(request):
@@ -197,22 +199,28 @@ from .models import OceanInvoice
 @permission_classes([IsAuthenticated])
 def download_invoice(request, invoice_id):
     try:
-        # Ensure invoice belongs to the logged-in user
         invoice = OceanInvoice.objects.get(id=invoice_id, user=request.user)
     except OceanInvoice.DoesNotExist:
         raise Http404("Invoice not found for this user.")
 
-    # Check if PDF exists before serving
-    if not invoice.pdf_file or not invoice.pdf_file.name:
-        raise Http404("Invoice PDF not available. Please contact support.")
+    # Cloudinary URL must exist
+    if not invoice.pdf_url:
+        raise Http404("Invoice PDF not available.")
 
-    # Return the file as downloadable attachment
-    return FileResponse(
-        invoice.pdf_file.open('rb'),
-        as_attachment=True,
-        filename=f"OceanInvoice_{invoice.invoice_number or invoice.id}.pdf",
-        content_type="application/pdf"
-    )
+    # Fetch file from Cloudinary
+    cloudinary_response = requests.get(invoice.pdf_url)
+
+    if cloudinary_response.status_code != 200:
+        raise Http404("Unable to download invoice file.")
+
+    pdf_content = cloudinary_response.content
+    filename = f"OceanInvoice_{invoice.invoice_number or invoice.id}.pdf"
+
+    # Return downloadable file
+    response = HttpResponse(pdf_content, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
 
 # api to get payment analytics for logged in user 
 @api_view(['GET'])

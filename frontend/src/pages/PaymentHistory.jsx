@@ -8,45 +8,22 @@ const PaymentHistory = () => {
     const [analytics, setAnalytics] = useState(null);
 
     // download invoice function 
-    const handleDownloadInvoice = async (invoiceId, orderId) => {
-        try {
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-            const accessToken = tokens?.access;
-
-            if (!accessToken) {
-                toast.error("Please log in to download invoices", { theme: "colored" });
-                return;
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/payments/download-invoice/${invoiceId}/`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                toast.error("Failed to download invoice", { theme: "colored" });
-                console.error("Response error:", response.status);
-                return;
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `OceanInvoice_${orderId}.pdf`;
-            toast.success("Invoive downloaded successfully",{theme:"colored",transition:Bounce});
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (err) {
-            console.error("Error downloading invoice:", err);
-            toast.error("Error downloading invoice", { theme: "colored" });
+    const handleDownloadInvoice = (url) => {
+        if (!url) {
+            toast.error("Invoice not available", { theme: "colored" });
+            return;
         }
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.download = "OceanCart_Invoice.pdf";
+        link.click();
+
+        toast.success("Invoice download started! 🌊", {
+            theme: "colored",
+            transition: Bounce,
+        });
     };
 
 
@@ -227,8 +204,7 @@ const PaymentHistory = () => {
                                 <td>
                                     <button
                                         className="btn btn-sm btn-outline-primary"
-                                        onClick={() => handleDownloadInvoice(payment.invoice_id, payment.order_id)}
-
+                                        onClick={() => handleDownloadInvoice(payment.invoice_url)}
                                     >
                                         Download
                                     </button>
@@ -299,7 +275,7 @@ const PaymentHistory = () => {
                         </p>
                         <button
                             className="btn btn-outline-primary btn-sm w-100 mt-2"
-                            onClick={() => handleDownloadInvoice(payment.invoice_id, payment.order_id)}
+                            onClick={() => handleDownloadInvoice(payment.invoice_url)}
                         >
                             Download Invoice
                         </button>

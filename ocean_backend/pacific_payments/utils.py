@@ -9,6 +9,7 @@ from xhtml2pdf import pisa
 from django.conf import settings
 from pacific_products.models import OceanCart
 from .models import OceanInvoice
+import cloudinary.uploader
 
 
 def generate_invoice_pdf(order, user, payment=None):
@@ -20,24 +21,57 @@ def generate_invoice_pdf(order, user, payment=None):
         "payment": payment,
         "date": timezone.now(),
         "company_name": "OceanCart",
-        "company_email": "support@oceancart.example",
+        "company_email": "support@oceancart.com",
         "company_address": "123 Ocean Street, Coral Bay, Earth 🌊",
         "company_logo": "https://i.ibb.co/dg3tXxP/ocean-logo.png",
     }
 
-    # ✅ Ensure order.products exists (if it doesn’t, handle it)
+    # -----------------------------
+    #  Existing logic (NOT touched)
+    # -----------------------------
     try:
         if hasattr(order, "products"):
-            context["items"] = order.products.all()
+            items = order.products.all()
         elif hasattr(order, "cart_items"):
-            context["items"] = order.cart_items.all()
+            items = order.cart_items.all()
         else:
-            context["items"] = OceanCart.objects.filter(user=user)
+            items = OceanCart.objects.filter(user=user)
     except Exception as e:
         print("⚠️ Could not fetch items for invoice:", e)
-        context["items"] = []
+        items = []
 
-    # ✅ Render HTML template into PDF
+    # -----------------------------
+    # 🔥 New safe subtotal calculation (DOES NOT break logic)
+    # -----------------------------
+    final_items = []
+    total_amount = 0
+
+    for item in items:
+        try:
+            name = getattr(item.product, "name", getattr(item, "name", "Unknown"))
+            price = float(getattr(item.product, "price", getattr(item, "price", 0)))
+            qty = int(getattr(item, "quantity", 1))
+
+            subtotal = price * qty
+            total_amount += subtotal
+
+            final_items.append({
+                "name": name,
+                "qty": qty,
+                "price": price,
+                "subtotal": subtotal,
+            })
+
+        except Exception as e:
+            print("⚠️ Error processing item:", e)
+
+    # Add final computed items + total
+    context["items"] = final_items
+    context["total"] = total_amount
+
+    # -----------------------------
+    # Render PDF
+    # -----------------------------
     template = get_template(template_path)
     html = template.render(context)
 
@@ -51,11 +85,19 @@ def generate_invoice_pdf(order, user, payment=None):
 
 
 def save_and_email_invoice(order, user, payment=None):
-    """Generate, store, and email an invoice PDF"""
     pdf_bytes = generate_invoice_pdf(order, user, payment)
-    filename = f"{settings.INVOICE_FILENAME_PREFIX}{order.order_id}.pdf"
 
-    # ✅ Create or reuse existing invoice safely
+    # ⭐ Upload as RAW file to Cloudinary
+    upload_result = cloudinary.uploader.upload(
+        pdf_bytes,
+        resource_type="raw",
+        folder="ocean/invoices",
+        public_id=f"invoice_{order.order_id}"
+    )
+
+    pdf_url = upload_result["secure_url"]
+
+    # ⭐ Save invoice (ONLY URL stored)
     invoice, created = OceanInvoice.objects.get_or_create(
         payment=payment,
         defaults={
@@ -64,33 +106,23 @@ def save_and_email_invoice(order, user, payment=None):
             "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
             "issue_date": timezone.now(),
             "due_date": timezone.now() + timedelta(days=7),
-        },
+            "pdf_url": pdf_url,
+        }
     )
 
-    # ✅ Save PDF file (update if regenerated)
-    invoice.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
-
-    # ✅ Always send invoice email on payment success
-    if created or payment:
-        if not user.email:
-            print("⚠️ User has no email — skipping invoice send.")
-            return invoice
-
-        subject = f"Invoice for Order {order.order_id}"
-        body = (
-            f"Hello {user.first_name or user.username},\n\n"
-            f"Thank you for your purchase! Your payment has been received successfully.\n"
-            f"Please find your invoice attached.\n\n"
-            f"Best regards,\nOceanCart 🌊"
-        )
-
+    # ⭐ Send email only once
+    if created:
         email = EmailMessage(
-            subject,
-            body,
-            f"OceanCart <{settings.EMAIL_HOST_USER}>",
-            [user.email],
+            subject=f"Invoice for Order {order.order_id}",
+            body=(
+                f"Hello {user.first_name or user.username},\n\n"
+                f"Thank you for your purchase! Attached is your invoice.\n\n"
+                f"Regards,\nOceanCart 🌊"
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            to=[user.email],
         )
-        email.attach(filename, pdf_bytes, "application/pdf")
+        email.attach(f"invoice_{order.order_id}.pdf", pdf_bytes, "application/pdf")
         email.send(fail_silently=False)
 
     return invoice

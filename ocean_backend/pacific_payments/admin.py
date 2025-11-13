@@ -45,7 +45,8 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
    
 @admin.register(OceanInvoice)
 class OceanInvoiceAdmin(admin.ModelAdmin):
-    list_display=("id","invoice_number","order","user","invoice_date","due_date","payment")
-    readonly_fields=["pdf_file"]
+    list_display = ("invoice_number", "user", "order", "invoice_date", "issue_date")
+    readonly_fields = ("invoice_number", "issue_date", "due_date", "pdf_url")
+    search_fields = ("invoice_number", "order__order_id", "user__username")
 
 

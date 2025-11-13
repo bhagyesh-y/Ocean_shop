@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 
+
 class OceanOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ocean_orders")
     order_id = models.CharField(max_length=100, unique=True)
@@ -40,6 +41,7 @@ class PaymentHistory(models.Model):
     method = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    invoice_url = models.URLField(null=True,blank=True)
 
     def __str__(self):
         return f"{self.user.username} — ₹{self.amount} ({self.status})"
@@ -52,7 +54,7 @@ class OceanInvoice(models.Model):
     issue_date = models.DateTimeField(default=timezone.now)
     due_date = models.DateTimeField(blank=True, null=True)
     payment=models.ForeignKey(PaymentHistory,on_delete=models.CASCADE,related_name='invoices')
-    pdf_file=models.FileField(upload_to='invoices/',null=True,blank=True)
+    pdf_url = models.URLField(null=True, blank=True) 
     
     def __str__(self):
          return f"Invoice {self.pk} for {self.order.order_id} - ₹{self.order.amount}"

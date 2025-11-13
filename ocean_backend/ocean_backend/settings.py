@@ -26,7 +26,16 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 INVOICE_FILENAME_PREFIX = os.getenv("INVOICE_FILENAME_PREFIX", "ocean_invoice_")
 
 # clodinary configuration
-CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+# CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    "DEFAULT_TAG": "ocean_invoices",  
+    "UPLOAD_OPTIONS": {
+        "resource_type": "raw"    
+    }
+}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -174,4 +183,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = BASE_DIR /'media'
+# MEDIA_ROOT = BASE_DIR /'media'
