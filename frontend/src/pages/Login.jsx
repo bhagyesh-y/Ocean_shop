@@ -7,10 +7,9 @@ import.meta.env
 // bcz vite exposes env variables via import.meta.env 
 
 const Login = () => {
-  const { oceanLogin, oceanSetGoogleLogin } = useContext(OceanAuthContext);
-  const navigate = useNavigate();
-
-  const [tideForm, setTideForm] = useState({ username: "", password: "" });
+  const { oceanLogin, oceanSetGoogleLogin } = useContext(OceanAuthContext);//destructuring the context values
+  const navigate = useNavigate(); // for navigation after login 
+  const [tideForm, setTideForm] = useState({ username: "", password: "" }); // form state
   const [waveError, setWaveError] = useState("");
   const [atlanticFade, setAtlanticFade] = useState(false);
 
@@ -27,7 +26,7 @@ const Login = () => {
     e.preventDefault(); // for preventing default behaviour of refresh 
     const success = await oceanLogin(tideForm.username, tideForm.password);
     if (success) {
-      toast.success("🌊 Login successful! Welcome `{username} aboard!", { theme: "colored" });
+      toast.success(`🌊 Login successful! Welcome ${tideForm.username}`, { theme: "colored" });
       navigate("/");
     } else {
       setWaveError("Login failed. Please check your credentials 🌊");
@@ -53,7 +52,6 @@ const Login = () => {
         console.log("✅ Google login success:", data);// once project is ready to deploy , have to remove console statements 
       }
 
-
       // Save JWT tokens localstorage but i have to change it to http cookie or memory 
       localStorage.setItem("oceanTokens", JSON.stringify(data));
 
@@ -67,7 +65,7 @@ const Login = () => {
       if (profileRes.ok) {
         const userProfile = await profileRes.json();
         localStorage.setItem("oceanUser", JSON.stringify(userProfile));
-        if (import.meta.env.MODE === "development") { // before deploying remove the console or change mode
+        if (import.meta.env.MODE === "development") { // before deploying remove the console or change the mode
           console.log("🌊 User profile:", userProfile);
         }
         // update context
@@ -77,7 +75,6 @@ const Login = () => {
         // Give AuthContext time to update before redirect
         setTimeout(() => navigate("/"), 400);
       }
-
 
     } catch (error) {
       console.error("❌ Google login error:", error);

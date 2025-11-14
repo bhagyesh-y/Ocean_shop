@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
 
 const Register = () => {
-    const { oceanRegister } = useContext(OceanAuthContext);
+    const { oceanRegister } = useContext(OceanAuthContext);// destructuring the context values
     const navigate = useNavigate();
 
     const [pacificForm, setPacificForm] = useState({
@@ -20,7 +20,7 @@ const Register = () => {
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150);
     }, []);
-
+    // handling form input changes 
     const handleTideChange = (e) => {
         setPacificForm({ ...pacificForm, [e.target.name]: e.target.value });
         setErrorWave("");
@@ -31,7 +31,7 @@ const Register = () => {
         e.preventDefault();
 
         if (pacificForm.password !== pacificForm.confirmPassword) {
-            setErrorWave("Passwords do not match ⚠️");
+            setErrorWave("Passwords did't match ⚠️");
             return;
         }
 
@@ -43,7 +43,7 @@ const Register = () => {
         );
 
         if (success) {
-            setSuccessWave("Account created successfully! 🌊 Redirecting...");
+            setSuccessWave(`Account created successfully! ${pacificForm.username} 🌊 Redirecting...`);
             setTimeout(() => navigate("/"), 1500);
         } else {
             setErrorWave("Registration failed. Please try again 🌀");

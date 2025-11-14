@@ -50,7 +50,7 @@ const CustomerService = () => {
                     <p>
                         We deliver worldwide 🌍. Track your orders in real time from your Cartify dashboard.
                     </p>
-                    <NavLink to="/quick-links" className="btn btn-outline-primary mt-3">
+                    <NavLink to="/quick-links" className="btn btn-outline-info mt-3">
                         View Policies
                     </NavLink>
                 </section>

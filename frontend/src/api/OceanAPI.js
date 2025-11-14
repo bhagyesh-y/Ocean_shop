@@ -9,7 +9,7 @@ export const fetchProducts = async () => {
     if (!tokens) throw new Error("No tokens found");
 
     let accessToken = tokens.access;
-    // Making  am API call
+    // Making an API call
     let response = await axios.get(`${BASE_URL}/products/`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });

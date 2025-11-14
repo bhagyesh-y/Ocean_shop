@@ -54,7 +54,7 @@ const About = () => {
                         <p>
                             Explore our blog for stories, product tips, and updates about what’s new at Cartify.
                         </p>
-                        <NavLink to="/customer-service" className="btn btn-outline-primary mt-3">
+                        <NavLink to="/customer-service" className="btn btn-outline-info mt-3">
                             Visit Help Center
                         </NavLink>
                     </section>

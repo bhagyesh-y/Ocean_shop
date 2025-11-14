@@ -1,28 +1,36 @@
 import React, { useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Context Providers
+import { CartProvider } from "./context/Cartcontext";
+import { OceanAuthProvider, OceanAuthContext } from "./context/AuthContext";
+
+// Layout Components
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
+// Page Components
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import Product from "./pages/Product";
 import ProductDetails from "./pages/ProductDetails";
-import { CartProvider } from "./context/Cartcontext";
-import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
 import Feedback from "./pages/Feedback";
-import { OceanAuthProvider, OceanAuthContext } from "./context/AuthContext";
 import About from "./pages/About";
 import CustomerService from "./pages/CustomerService";
 import QuickLinks from "./pages/QuickLinks";
 import PaymentHistory from "./pages/PaymentHistory";
 
+// main app routes component 
+
 const AppRoutes = () => {
   const { oceanUser } = useContext(OceanAuthContext);
 
-  // 🌊 If user is not logged in, restrict access
+  // If user is not logged in, restrict access
   if (!oceanUser) {
     return (
       <Routes>
@@ -34,7 +42,7 @@ const AppRoutes = () => {
     );
   }
 
-  // ✅ Logged-in user — full site access
+  // Logged-in user — full site access
   return (
     <>
       <Navbar />

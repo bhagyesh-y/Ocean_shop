@@ -63,7 +63,7 @@ export const OceanAuthProvider = ({ children }) => {
         }
     };
 
-    // 🌊 GOOGLE LOGIN helper (new)
+    // 🌊 GOOGLE LOGIN helper 
     const oceanSetGoogleLogin = (tokens, user) => {
         localStorage.setItem("oceanTokens", JSON.stringify(tokens));
         localStorage.setItem("oceanUser", JSON.stringify(user));
@@ -101,7 +101,7 @@ export const OceanAuthProvider = ({ children }) => {
                 oceanLogin,
                 oceanRegister,
                 logoutUser,
-                oceanSetGoogleLogin, // added for Google login
+                oceanSetGoogleLogin,
             }}
         >
             {children}
