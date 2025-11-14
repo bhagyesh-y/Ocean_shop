@@ -12,16 +12,17 @@ const PaymentHistory = () => {
         setTimeout(() => setAtlanticFade(true), 150);
     }, []);
 
+    // handle invoice download
+    const handleDownloadInvoice = (invoice_url) => {
 
-    // download invoice function 
-    const handleDownloadInvoice = (url) => {
-        if (!url) {
+        if (!invoice_url) {
             toast.error("Invoice not available", { theme: "colored" });
             return;
         }
+        const downloadUrl = invoice_url + "?fl_attachment=true";
 
         const link = document.createElement("a");
-        link.href = url;
+        link.href = downloadUrl;
         link.target = "_blank";
         link.download = "OceanCart_Invoice.pdf";
         link.click();
@@ -80,6 +81,7 @@ const PaymentHistory = () => {
         fetchAnalytics();
     }, []);
 
+
     // 🌀 Loading State
     if (loading) {
         return (
@@ -100,7 +102,6 @@ const PaymentHistory = () => {
                     borderRadius: "15px",
                     transition: "opacity 1s ease, transform 0.6s ease",
                     transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
-                    overflow: "hidden",
 
                 }}
             >

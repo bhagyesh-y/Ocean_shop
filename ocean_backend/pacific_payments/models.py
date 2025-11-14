@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 
 class OceanOrder(models.Model):
@@ -48,13 +49,29 @@ class PaymentHistory(models.Model):
     
 class OceanInvoice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    order = models.ForeignKey('OceanOrder',on_delete=models.CASCADE,related_name='invoices')
-    invoice_number = models.CharField(max_length=100,unique = True)
+    order = models.ForeignKey(
+        'OceanOrder',
+        on_delete=models.CASCADE,
+        related_name='invoices'
+    )
+    invoice_number = models.CharField(max_length=100, unique=True)
     invoice_date = models.DateField(auto_now_add=True)
     issue_date = models.DateTimeField(default=timezone.now)
     due_date = models.DateTimeField(blank=True, null=True)
-    payment=models.ForeignKey(PaymentHistory,on_delete=models.CASCADE,related_name='invoices')
-    pdf_url = models.URLField(null=True, blank=True) 
-    
+    payment = models.ForeignKey(
+        PaymentHistory,
+        on_delete=models.CASCADE,
+        related_name='invoices'
+    )
+
+    # ⭐ This is the real Cloudinary upload
+    pdf_file = models.FileField(
+        upload_to="invoices/",
+        storage=MediaCloudinaryStorage(),
+        blank=True,
+        null=True
+    )
+    pdf_url = models.URLField(null=True, blank=True)
+
     def __str__(self):
-         return f"Invoice {self.pk} for {self.order.order_id} - ₹{self.order.amount}"
+        return f"Invoice {self.pk} for {self.order.order_id} - ₹{self.order.amount}"

@@ -8,8 +8,8 @@ import { FaShoppingCart, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
 const PacificNavbar = () => {
     const { cart } = useContext(CartContext);
     const { oceanUser, logoutUser } = useContext(OceanAuthContext);
-    const [pacificOpen, setPacificOpen] = useState(false);
-    const location = useLocation();
+    const [pacificOpen, setPacificOpen] = useState(false);//mobile sidebar state
+    const location = useLocation(); // to track current route
     const reefRef = useRef(null);
     const navigate = useNavigate();
 

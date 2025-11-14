@@ -23,8 +23,7 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 from rest_framework.response import Response
-from .serializers import PaymentHistorySerializer
-
+from .models import OceanInvoice
 
 @csrf_exempt
 def create_order(request):
@@ -184,6 +183,7 @@ def razorpay_webhook(request):
         print("❌ Webhook error:", e)
         return JsonResponse({"error": str(e)}, status=500)
     
+    #  
 class UserPaymentHistoryView(generics.ListAPIView):
     serializer_class = PaymentHistorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -191,32 +191,41 @@ class UserPaymentHistoryView(generics.ListAPIView):
     def get_queryset(self):
         return PaymentHistory.objects.filter(user=self.request.user).order_by("-created_at")
 
-from django.http import FileResponse, Http404
-from django.contrib.auth.decorators import login_required
-from .models import OceanInvoice
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def download_invoice(request, invoice_id):
+    # 1. Validate invoice belongs to user
     try:
         invoice = OceanInvoice.objects.get(id=invoice_id, user=request.user)
     except OceanInvoice.DoesNotExist:
         raise Http404("Invoice not found for this user.")
 
-    # Cloudinary URL must exist
+    # 2. Must have Cloudinary URL
     if not invoice.pdf_url:
         raise Http404("Invoice PDF not available.")
 
-    # Fetch file from Cloudinary
-    cloudinary_response = requests.get(invoice.pdf_url)
+    # 3. Request PDF from Cloudinary (add headers to avoid block)
+    try:
+        cloudinary_response = requests.get(
+            invoice.pdf_url,
+            headers={"User-Agent": "Mozilla/5.0"},
+            stream=True,
+            timeout=10
+        )
+    except Exception as e:
+        print("Cloudinary download error:", e)
+        raise Http404("Unable to fetch invoice from Cloudinary.")
 
+    # 4. Verify successful download
     if cloudinary_response.status_code != 200:
+        print("Cloudinary error status:", cloudinary_response.status_code)
         raise Http404("Unable to download invoice file.")
 
     pdf_content = cloudinary_response.content
     filename = f"OceanInvoice_{invoice.invoice_number or invoice.id}.pdf"
 
-    # Return downloadable file
+    # 5. Return file as attachment
     response = HttpResponse(pdf_content, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
@@ -236,6 +245,7 @@ def payment_analytics_user(request):
         "per_method": list(per_method)
     })
      
+    #  api to get recent payments for logged in user 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recent_payments (request):

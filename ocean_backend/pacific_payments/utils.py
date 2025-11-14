@@ -26,9 +26,6 @@ def generate_invoice_pdf(order, user, payment=None):
         "company_logo": "https://i.ibb.co/dg3tXxP/ocean-logo.png",
     }
 
-    # -----------------------------
-    #  Existing logic (NOT touched)
-    # -----------------------------
     try:
         if hasattr(order, "products"):
             items = order.products.all()
@@ -40,9 +37,7 @@ def generate_invoice_pdf(order, user, payment=None):
         print("⚠️ Could not fetch items for invoice:", e)
         items = []
 
-    # -----------------------------
-    # 🔥 New safe subtotal calculation (DOES NOT break logic)
-    # -----------------------------
+  
     final_items = []
     total_amount = 0
 

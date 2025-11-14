@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import PaymentHistory
-from .models import OceanInvoice
+from .models import PaymentHistory, OceanInvoice
 
 class PaymentHistorySerializer(serializers.ModelSerializer):
     invoice_id = serializers.SerializerMethodField()
+    invoice_url = serializers.SerializerMethodField() 
 
     class Meta:
         model = PaymentHistory
@@ -21,8 +21,19 @@ class PaymentHistorySerializer(serializers.ModelSerializer):
         ]
 
     def get_invoice_id(self, obj):
-        # Ensure robust lookup by both 'payment' and 'order'
         invoice = OceanInvoice.objects.filter(payment=obj).first()
         if not invoice:
-            invoice = OceanInvoice.objects.filter(order__order_id=obj.order_id, user=obj.user).first()
+            invoice = OceanInvoice.objects.filter(
+                order__order_id=obj.order_id,
+                user=obj.user
+            ).first()
         return invoice.id if invoice else None
+
+    def get_invoice_url(self, obj):
+        invoice = OceanInvoice.objects.filter(payment=obj).first()
+        if not invoice:
+            invoice = OceanInvoice.objects.filter(
+                order__order_id=obj.order_id,
+                user=obj.user
+            ).first()
+        return invoice.pdf_url if invoice else None

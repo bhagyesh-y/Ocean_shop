@@ -179,8 +179,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- Cloudinary Storage Setup ---
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 MEDIA_URL = '/media/'
 
-# MEDIA_ROOT = BASE_DIR /'media'
+MEDIA_ROOT = BASE_DIR /'media'
