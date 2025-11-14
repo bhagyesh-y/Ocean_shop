@@ -2,10 +2,15 @@ import React, { useState } from "react";
 import emailjs from "emailjs-com";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useEffect } from "react";
 
 const Feedback = () => {
+    const [atlanticFade, setAtlanticFade] = useState(false);
     const [formData, setFormData] = useState({ name: "", email: "", message: "" });
 
+    useEffect(() => {
+        setTimeout(() => setAtlanticFade(true), 150); // soft fade-in
+    }, []);
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -34,11 +39,14 @@ const Feedback = () => {
 
     return (
         <div
-            className="container py-5"
+            className={`container py-5 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
             style={{
                 background: "linear-gradient(180deg, #ade8f4 0%, #48cae4 100%)",
                 borderRadius: "15px",
                 minHeight: "80vh",
+                transition: "opacity 1s ease, transform 0.6s ease",
+                transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
+
             }}
         >
             <h2 className="text-center fw-bold text-white mb-4">We’d love your Feedback 💬</h2>

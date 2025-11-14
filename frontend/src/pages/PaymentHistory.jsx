@@ -6,6 +6,12 @@ const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [analytics, setAnalytics] = useState(null);
+    const [atlanticFade, setAtlanticFade] = useState(false);
+
+    useEffect(() => {
+        setTimeout(() => setAtlanticFade(true), 150);
+    }, []);
+
 
     // download invoice function 
     const handleDownloadInvoice = (url) => {
@@ -20,7 +26,7 @@ const PaymentHistory = () => {
         link.download = "OceanCart_Invoice.pdf";
         link.click();
 
-        toast.success("Invoice download started! 🌊", {
+        toast.success("Invoice downloaded! 🌊", {
             theme: "colored",
             transition: Bounce,
         });
@@ -74,12 +80,6 @@ const PaymentHistory = () => {
         fetchAnalytics();
     }, []);
 
-    // 🌊 Page Fade-in Animation
-    const pageFade = {
-        hidden: { opacity: 0, y: 40 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-    };
-
     // 🌀 Loading State
     if (loading) {
         return (
@@ -93,14 +93,15 @@ const PaymentHistory = () => {
     if (payments.length === 0) {
         return (
             <motion.div
-                className="container text-center py-5"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6 }}
+                className={`container text-center py-5 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
                 style={{
                     minHeight: "80vh",
                     background: "linear-gradient(180deg, #caf0f8 0%, #ade8f4 100%)",
                     borderRadius: "15px",
+                    transition: "opacity 1s ease, transform 0.6s ease",
+                    transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
+                    overflow: "hidden",
+
                 }}
             >
                 <h3 className="fw-bold text-primary mt-5">No Payments Yet 💳</h3>
@@ -112,15 +113,16 @@ const PaymentHistory = () => {
     // 🌊 Payment History Page
     return (
         <motion.div
-            className="container py-5"
-            variants={pageFade}
-            initial="hidden"
-            animate="visible"
+            className={`container py-5 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
             style={{
                 minHeight: "80vh",
                 background: "linear-gradient(180deg, #90e0ef 0%, #0077b6 100%)",
                 borderRadius: "15px",
                 overflow: "hidden",
+                transition: "opacity 1s ease, transform 0.6s ease",
+                transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
+                overflow: "hidden",
+
             }}
         >
             <h2 className="text-center text-white fw-bold mb-4">🌊 Payment History</h2>

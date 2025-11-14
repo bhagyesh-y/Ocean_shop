@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 const Dashboard = () => {
     const { cart, totalPrice } = useContext(CartContext);
     const { oceanUser } = useContext(OceanAuthContext);
-
+    const [atlanticFade, setAtlanticFade] = useState(false);
     const [recentOrders, setRecentOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
 
@@ -17,6 +17,9 @@ const Dashboard = () => {
         avatar: oceanUser?.picture || "",
     };
 
+    useEffect(() => {
+        setTimeout(() => setAtlanticFade(true), 150)
+    })
     // 🔹 Fetch recent paid orders
     useEffect(() => {
         const fetchRecentOrders = async () => {
@@ -49,10 +52,12 @@ const Dashboard = () => {
 
     return (
         <div
-            className="min-vh-100 py-5"
+            className={`min-vh-100 py-5 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
             style={{
                 background: "linear-gradient(135deg, #0077b6, #00b4d8)",
                 overflowX: "hidden",
+                transition: "opacity 1s ease, transform 0.6s ease",
+                transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
             }}
         >
             <div className="container">

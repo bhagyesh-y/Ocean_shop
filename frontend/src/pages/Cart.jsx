@@ -7,9 +7,14 @@ import { motion } from "framer-motion";
 const Cart = () => {
     const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext);
     const [fadeIn, setFadeIn] = useState(false);
+    const [atlanticFade, setAtlanticFade] = useState(false)
     const [showModal, setShowModal] = useState(false);
     const [loadingPayment, setLoadingPayment] = useState(false); // 🌀 Loader
     const navigate = useNavigate();
+
+    useEffect(() => {
+        setTimeout(() => setAtlanticFade(true), 150); // soft fade-in
+    }, []);
 
     useEffect(() => {
         setTimeout(() => setFadeIn(true), 150);
@@ -158,12 +163,14 @@ const Cart = () => {
     if (cart.length === 0) {
         return (
             <div
-                className="container text-center py-5"
+                className={`"container text-center py-5 ${atlanticFade ? "opacity-100" : "opacity-0"}`}
                 style={{
                     minHeight: "80vh",
                     background: "linear-gradient(180deg, #caf0f8 0%, #ade8f4 100%)",
                     borderRadius: "15px",
-                    transition: "all 0.6s ease",
+                    transition: "opacity 1s ease, transform 0.6s ease",
+                    transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
+                    overflow: "hidden"
                 }}
             >
                 <h3 className="fw-bold text-primary mt-5">Your cart is empty 🛒</h3>
@@ -179,12 +186,14 @@ const Cart = () => {
         <>
             {/* 🛒 Main Cart UI */}
             <div
-                className={`container py-5 ocean-fade ${fadeIn ? "fade-in" : ""}`}
+                className={`container py-5 ocean-fade ${atlanticFade ? "opacity-100" : "opacity-0"}`}
                 style={{
                     minHeight: "80vh",
                     background: "linear-gradient(180deg, #ade8f4 0%, #48cae4 100%)",
                     borderRadius: "15px",
-                    transition: "all 0.6s ease-in-out",
+                    transition: "opacity 1s ease, transform 0.6s ease",
+                    transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
+                    overflow: "hidden",
                 }}
             >
                 <h2 className="text-center mb-4 text-white fw-bold">Your Cart 🛍️</h2>
