@@ -11,6 +11,10 @@ import { OceanAuthProvider, OceanAuthContext } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+// Scroll To Top Component
+import ScrollToTop from "./components/Scrolltotop";
+import BackToTop from "./components/BackToTop";
+
 // Page Components
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
@@ -26,7 +30,6 @@ import QuickLinks from "./pages/QuickLinks";
 import PaymentHistory from "./pages/PaymentHistory";
 
 // main app routes component 
-
 const AppRoutes = () => {
   const { oceanUser } = useContext(OceanAuthContext);
 
@@ -49,8 +52,6 @@ const AppRoutes = () => {
       <main className="flex-fill">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/products" element={<Product />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
@@ -60,8 +61,9 @@ const AppRoutes = () => {
           <Route path="/customer-service" element={<CustomerService />} />
           <Route path="/quick-links" element={<QuickLinks />} />
           <Route path="/payment-history" element={<PaymentHistory />} />
-          {/* Redirect any unknown route to home */}
-          <Route path="/" element={<Navigate to='/' replace />} />
+
+          {/* Redirect any other route to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       <Footer />
@@ -74,6 +76,8 @@ const App = () => {
     <OceanAuthProvider>
       <CartProvider>
         <Router>
+          <BackToTop />
+          <ScrollToTop />
           <div className="d-flex flex-column min-vh-100">
             <AppRoutes />
           </div>
