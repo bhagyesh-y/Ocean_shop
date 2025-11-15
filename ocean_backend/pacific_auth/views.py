@@ -9,11 +9,13 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import viewsets
 
+#  user registration view
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
 
+# user profile view 
 class ProfileView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -21,6 +23,7 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(request.user)
         return Response(serializer.data)
     
+# google login view
 class GoogleLoginView(APIView):
     permission_classes = []
     authentication_classes = []
@@ -32,7 +35,7 @@ class GoogleLoginView(APIView):
             idinfo = id_token.verify_oauth2_token(token, requests.Request())
             email = idinfo["email"]
             name = idinfo.get("name", email.split("@")[0])
-
+            picture= idinfo.get ("picture", "")
             # Find or create user
             user, created = User.objects.get_or_create(username=email, defaults={"email": email, "first_name": name})
 
@@ -41,6 +44,14 @@ class GoogleLoginView(APIView):
             return Response({
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
+                "user":{
+                    "id": user.id,
+                    "first_name":user.first_name,
+                    "last_name":user.last_name,
+                    "username":user.username,
+                    "email":user.email,
+                    "picture":picture,
+                }
             })
 
         except Exception as e:

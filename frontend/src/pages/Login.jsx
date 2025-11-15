@@ -52,8 +52,9 @@ const Login = () => {
         console.log("✅ Google login success:", data);// once project is ready to deploy , have to remove console statements 
       }
 
-      // Save JWT tokens localstorage but i have to change it to http cookie or memory 
+      // Save JWT tokens localstorage but i have to change it to cookie or memory 
       localStorage.setItem("oceanTokens", JSON.stringify(data));
+      localStorage.setItem("oceanUser", JSON.stringify(data.user))
 
       // Fetch user profile
       const profileRes = await fetch("http://127.0.0.1:8000/api/profile/", {
@@ -64,13 +65,17 @@ const Login = () => {
 
       if (profileRes.ok) {
         const userProfile = await profileRes.json();
-        localStorage.setItem("oceanUser", JSON.stringify(userProfile));
+        const mergedUser = {
+          ...userProfile,
+          picture: data.user.picture,
+        }
+        localStorage.setItem("oceanUser", JSON.stringify(mergedUser));
         if (import.meta.env.MODE === "development") { // before deploying remove the console or change the mode
-          console.log("🌊 User profile:", userProfile);
+          console.log("🌊 User profile:", mergedUser);
         }
         // update context
-        oceanSetGoogleLogin(data, userProfile);
-        toast.success(`Welcome back, ${userProfile.username}!`, { theme: "colored" });
+        oceanSetGoogleLogin(data, mergedUser);
+        toast.success(`Welcome back, ${mergedUser.username}!`, { theme: "colored" });
 
         // Give AuthContext time to update before redirect
         setTimeout(() => navigate("/"), 400);

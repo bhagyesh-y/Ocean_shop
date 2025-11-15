@@ -12,11 +12,10 @@ const Dashboard = () => {
     const [loadingOrders, setLoadingOrders] = useState(true);
 
     const userOcean = {
-        name: oceanUser?.username || oceanUser?.name || "Guest User",
+        name: oceanUser?.first_name || oceanUser?.username || "Guest User",
         email: oceanUser?.email || "guest@example.com",
-        avatar: oceanUser?.picture || "",
+        avatar: oceanUser?.picture || "https://i.ibb.co/bP5fX6x/default-avatar.png",
     };
-
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150)
     })
@@ -70,13 +69,26 @@ const Dashboard = () => {
                     }}
                 >
                     <img
-                        src={userOcean.avatar}
-                        alt="avatar"
+                        src={
+                            userOcean.avatar && userOcean.avatar !== ""
+                                ? userOcean.avatar
+                                : "https://cdn-icons-png.flaticon.com/512/149/149071.png" // default avatar
+                        }
+                        alt="profile avatar"
                         className="rounded-circle mx-auto mb-3 shadow-sm"
-                        width="100"
-                        height="100"
-                        style={{ objectFit: "cover" }}
+                        width="110"
+                        height="110"
+                        style={{
+                            objectFit: "cover",
+                            border: "4px solid #0077b6",
+                            transition: "transform 0.3s ease",
+                        }}
+                        onError={(e) => {
+                            // fallback if google avatar fails
+                            e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                        }}
                     />
+
                     <h4 className="text-primary fw-bold mb-0">{userOcean.name}</h4>
                     <p className="text-muted">{userOcean.email}</p>
                 </div>

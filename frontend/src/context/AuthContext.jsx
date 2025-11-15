@@ -86,7 +86,9 @@ export const OceanAuthProvider = ({ children }) => {
         if (storedTokens && storedUser) {
             setOceanTokens(JSON.parse(storedTokens));
             setOceanUser(JSON.parse(storedUser));
-        } else if (storedTokens) {
+            return;
+        }
+        if (storedTokens) {
             const parsedTokens = JSON.parse(storedTokens);
             setOceanTokens(parsedTokens);
             fetchProfile(parsedTokens.access);
