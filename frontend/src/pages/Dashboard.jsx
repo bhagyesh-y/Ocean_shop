@@ -88,7 +88,6 @@ const Dashboard = () => {
                             e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
                         }}
                     />
-
                     <h4 className="text-primary fw-bold mb-0">{userOcean.name}</h4>
                     <p className="text-muted">{userOcean.email}</p>
                 </div>

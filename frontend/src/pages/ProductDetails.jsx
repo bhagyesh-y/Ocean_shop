@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { products } from "../products.js";
 import { fetchProducts } from "../api/OceanAPI.js";
 import { CartContext } from "../context/Cartcontext.jsx";
 import { toast } from "react-toastify";

@@ -122,9 +122,9 @@ def verify_payment(request):
                 method=order.method or "unknown",
                 status="success",
             )
-
+            recipient_email=payment_info.get("email") # new line added from gemini 
             # ✅ Step 5: Generate and link invoice
-            invoice = save_and_email_invoice(order=order, user=user, payment=payment_history)
+            invoice = save_and_email_invoice(order=order, user=user, payment=payment_history,recipient_email=recipient_email )# parameter also 
 
             # ✅ Make sure the invoice references this payment
             if not invoice.payment:
@@ -245,7 +245,7 @@ def payment_analytics_user(request):
         "per_method": list(per_method)
     })
      
-    #  api to get recent payments for logged in user 
+#  api to get recent payments for logged in user 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recent_payments (request):
