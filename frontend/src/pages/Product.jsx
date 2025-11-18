@@ -193,8 +193,8 @@ const Products = () => {
                                                 </Link>
                                                 <button
                                                     className={`btn btn-sm ${addedProducts.includes(product.id)
-                                                            ? "btn-success"
-                                                            : "btn-outline-success"
+                                                        ? "btn-success"
+                                                        : "btn-outline-success"
                                                         }`}
                                                     onClick={() => handleAddToCart(product)}
                                                 >

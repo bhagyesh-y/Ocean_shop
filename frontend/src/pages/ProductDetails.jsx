@@ -12,7 +12,7 @@ const ProductDetails = () => {
     const product = oceanProducts.find((p) => p.id === parseInt(id));
     const [loading, setLoading] = useState(true);// for loading 
     const [added, setAdded] = useState(false);
-    const [fadeIn, setFadeIn] = useState(false);
+    const [fadeIn, setFadeIn] = useState(false);//
     const navigate = useNavigate();
 
     useEffect(() => {

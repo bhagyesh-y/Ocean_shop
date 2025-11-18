@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import Product, OceanCart
 
+
+        
 #  Product Serializer
 class ProductSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
@@ -39,10 +41,14 @@ class OceanCartSerializer(serializers.ModelSerializer):
         }
 
     def get_total_price(self, obj):
-        """✅ Must be defined like this"""
+        """ Must be defined like this"""
         return obj.product.price * obj.quantity
 
     def create(self, validated_data):
         user = self.context['request'].user
         validated_data['user'] = user
         return super().create(validated_data)
+    
+
+
+        

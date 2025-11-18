@@ -9,4 +9,5 @@ urlpatterns = [
     path('cart/', OceanCartListCreateView.as_view(),name='ocean-cart-lists-create'),
     path('cart/,<int:pk>/', OceanCartDetailView.as_view(),name='ocean-cart-detail'),
     path('cart/clear/',views.clear_cart,name='clear-cart'),
+   
 ]
