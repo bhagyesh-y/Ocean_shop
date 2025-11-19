@@ -5,6 +5,7 @@ import cloudinary.uploader
 import cloudinary.api
 from dotenv import load_dotenv
 load_dotenv()
+import dj_database_url
 #GOOGLE AUTH KEYS
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 #RAZORPAY KEYS
@@ -41,7 +42,7 @@ CLOUDINARY_STORAGE = {
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -131,13 +132,23 @@ WSGI_APPLICATION = 'ocean_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if 'DATABASE_URL' in os.environ:
+    # Production settings (PostgreSQL)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,  # Recommended setting for persistent connections
+            ssl_require=True,  # Ensure secure connection for Render
+        )
     }
-}
-
+else:
+    # Local development settings (SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
