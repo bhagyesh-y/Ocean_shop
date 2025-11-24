@@ -19,7 +19,7 @@ const Dashboard = () => {
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150)
     })
-    // 🔹 Fetch recent paid orders
+    //  Fetch recent paid orders
     useEffect(() => {
         const fetchRecentOrders = async () => {
             try {
@@ -152,7 +152,7 @@ const Dashboard = () => {
                     )}
                 </div>
 
-                {/* 🌊 Cart Summary */}
+                {/* Cart Summary */}
                 <div
                     className="card border-0 shadow-lg text-center p-4"
                     style={{

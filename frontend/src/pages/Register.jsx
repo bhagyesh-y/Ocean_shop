@@ -70,7 +70,7 @@ const Register = () => {
                 }}
             >
                 <h2 className="text-center mb-4 fw-bold text-primary">
-                    Create Ocean Account 🌊
+                    Create A  Ocean Account 🌊
                 </h2>
 
                 {errorWave && (

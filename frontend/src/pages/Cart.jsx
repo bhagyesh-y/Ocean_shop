@@ -159,7 +159,7 @@ const Cart = () => {
             setLoadingPayment(false);
         }
     };
-
+    //  If cart is empty 
     if (cart.length === 0) {
         return (
             <div
@@ -182,9 +182,9 @@ const Cart = () => {
         );
     }
 
+    // Main cart UI when cart is loaded
     return (
         <>
-            {/* 🛒 Main Cart UI */}
             <div
                 className={`container py-5 ocean-fade ${atlanticFade ? "opacity-100" : "opacity-0"}`}
                 style={{
@@ -264,7 +264,7 @@ const Cart = () => {
                 </div>
             </div>
 
-            {/* 🌊 Checkout Confirmation Modal */}
+            {/* Checkout Confirmation Modal */}
             {showModal && (
                 <div
                     className="modal fade show"
@@ -312,7 +312,7 @@ const Cart = () => {
                 </div>
             )}
 
-            {/* 🌊 Loader Overlay During Payment */}
+            {/*  Loader Overlay During Payment */}
             {loadingPayment && (
                 <motion.div
                     initial={{ opacity: 0 }}
