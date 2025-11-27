@@ -41,7 +41,7 @@ CLOUDINARY_STORAGE = {
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
