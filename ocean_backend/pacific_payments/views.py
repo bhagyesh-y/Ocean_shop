@@ -92,7 +92,8 @@ def verify_payment(request):
             user = User.objects.get(id=user_id)
             print("RAZORPAY_KEY_ID from settings:", settings.RAZORPAY_KEY_ID)
             print("RAZORPAY_KEY_SECRET from settings:", settings.RAZORPAY_KEY_SECRET)
-            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            client = razorpay.Client(auth=( str(settings.RAZORPAY_KEY_ID).strip(),
+                                            str(settings.RAZORPAY_KEY_SECRET).strip()))
 
             # Step 1: Verify signature
             client.utility.verify_payment_signature({
