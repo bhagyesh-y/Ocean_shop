@@ -92,7 +92,7 @@ const CustomerService = () => {
                             <li>🧾 Where can I download invoices?</li>
                         </ul>
                         <NavLink to="/quick-links" className="btn btn-outline-light mt-2">
-                            View Shipping Policies
+                            Policies
                         </NavLink>
                     </section>
                 )}

@@ -39,7 +39,7 @@ const About = () => {
                 }}
             >
                 <h1 className="text-center fw-bold mb-5 text-white">
-                    About OceanCart 🌊
+                    About Ocean Shop 🌊
                 </h1>
 
                 <div className="d-flex flex-column gap-5">
@@ -48,7 +48,7 @@ const About = () => {
                         <section className="fade-up">
                             <h3 className="fw-bold">📖 Our Story</h3>
                             <p>
-                                OceanCart began with a simple mission:
+                                Ocean Shop began with a simple mission:
                                 <strong> to bring clarity, trust, and a refreshing experience to online shopping.</strong>
                             </p>
                             <p>
@@ -64,18 +64,18 @@ const About = () => {
                         <section className="fade-up">
                             <h3 className="fw-bold">👩‍💻 Careers</h3>
                             <p>
-                                At OceanCart, we believe great things happen when great minds come together.
+                                At Ocean Shop, we believe great things happen when great minds come together.
                                 We’re growing — and always searching for creative designers, passionate
                                 developers, product thinkers, and customer-first problem solvers.
                             </p>
                             <p>
-                                Whether you're a seasoned engineer or an enthusiastic intern,
+                                Whether you're a passionate engineer or an enthusiastic intern,
                                 you’ll find opportunities to build meaningful features and shape the
                                 future of e-commerce.
                             </p>
                             <p className="fw-semibold">
                                 Email your resume to
-                                <span className="text-info"> careers@oceancart.com</span>
+                                <span className="text-info"> careers@oceanshop.com</span>
                             </p>
                         </section>
                     )}
@@ -85,7 +85,7 @@ const About = () => {
                         <section className="fade-up">
                             <h3 className="fw-bold">📝 Blog</h3>
                             <p>
-                                Dive into the OceanCart Blog for product updates, shopping ideas,
+                                Dive into the Ocean Shop Blog for product updates, shopping ideas,
                                 behind-the-scenes stories, and expert tips on making the most of
                                 your purchases.
                             </p>
@@ -101,15 +101,15 @@ const About = () => {
                         <section className="fade-up">
                             <h3 className="fw-bold">👤 Founder’s Message</h3>
                             <p>
-                                “When we started OceanCart, our dream wasn’t just to build another shopping platform —
-                                it was to build <strong>a place people trust.</strong>
+                                “When we started Ocean Shop, our dream wasn’t just to build another shopping platform —
+                                it was to build <strong>a place where people can trust.</strong>
                             </p>
                             <p>
                                 A place that feels modern, secure, and enjoyable.
                                 Every line of code, every design decision,
                                 and every customer interaction reflects that vision.
                             </p>
-                            <p className="fw-semibold mt-2">— Team OceanCart 🌊</p>
+                            <p className="fw-semibold mt-2">— Team Ocean Shop 🌊</p>
                         </section>
                     )}
 
@@ -118,7 +118,7 @@ const About = () => {
                         <section className="fade-up">
                             <h3 className="fw-bold">👥 Meet the Crew</h3>
                             <p className="mb-3">
-                                Behind OceanCart is a passionate crew of engineers, designers, analysts,
+                                Behind Ocean Shop is a passionate crew of engineers, designers, analysts,
                                 and customer champions.
                             </p>
 
@@ -155,7 +155,7 @@ const About = () => {
                             <div className="timeline">
                                 <div className="time-box">
                                     <div className="time-circle"></div>
-                                    <p><strong>2024</strong> — OceanCart idea born.</p>
+                                    <p><strong>2024</strong> — Ocean Shop idea born.</p>
                                 </div>
 
                                 <div className="time-box">

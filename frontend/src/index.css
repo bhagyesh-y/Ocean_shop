@@ -114,6 +114,100 @@ footer {
     display: none;
   }
 }
+
+/* ===========================
+   OCEAN THEME NAVBAR (NO CLASS CHANGES)
+   =========================== */
+
+/* Main navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 999;
+  padding: 12px 35px;
+
+  background: rgba(0, 102, 204, 0.25); /* ocean transparent blue */
+  backdrop-filter: blur(12px); /* frosted glass effect */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  transition: background 0.3s ease, padding 0.3s ease;
+}
+
+/* When scrolled */
+.navbar.scrolled {
+  background: linear-gradient(135deg, #043263 0%, #03045e 100%);
+  padding: 8px 35px;
+}
+
+/* Brand / Logo */
+.navbar-brand {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Nav items container */
+.navbar-nav {
+  gap: 22px;
+  display: flex;
+  align-items: center;
+}
+
+/* Links */
+.nav-link {
+  font-size: 17px;
+  font-weight: 500;
+  color: #ffffff !important;
+  transition: 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #c8f6ff !important;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/* Active link underline */
+.nav-link.active {
+  border-bottom: 2px solid #ffffff;
+  padding-bottom: 4px;
+}
+
+/* Cart Button */
+.btn-cart {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border-radius: 8px;
+  padding: 7px 14px;
+  transition: 0.3s ease;
+  border: none;
+}
+
+.btn-cart:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Logout Button */
+.btn-logout {
+  background: rgba(255, 50, 50, 0.2);
+  color: #ffe5e5;
+  border-radius: 8px;
+  padding: 7px 14px;
+  border: none;
+  transition: 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 50, 50, 0.33);
+}
+
+/* Prevent content from going under navbar */
+body {
+  padding-top: 80px;
+}
+
 /* 🌊 Underwater sunlight shimmer effect */
 @keyframes sunlightShimmer {
   0% {

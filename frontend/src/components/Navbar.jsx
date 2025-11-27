@@ -17,6 +17,20 @@ const PacificNavbar = () => {
     useEffect(() => {
         setPacificOpen(false);
     }, [location]);
+    // enable scroll detection 
+    useEffect(() => {
+        const handleScroll = () => {
+            const navbar = document.querySelector(".navbar");
+            if (window.scrollY > 15) {
+                navbar.classList.add("scrolled");
+            } else {
+                navbar.classList.remove("scrolled");
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
 
     // Close on ESC key
     useEffect(() => {
@@ -41,7 +55,7 @@ const PacificNavbar = () => {
             <div className="container-fluid">
 
                 <NavLink to="/" className="navbar-brand fw-bold text-light">
-                    Cartify <FaShoppingCart className="ms-1" />
+                    Ocean Shop <FaShoppingCart className="ms-1" />
                 </NavLink>
 
                 <div className="pacificLinks d-none d-lg-flex ms-auto align-items-center">
