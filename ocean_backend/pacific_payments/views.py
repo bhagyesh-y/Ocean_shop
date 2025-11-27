@@ -28,7 +28,7 @@ from .models import OceanInvoice
 @csrf_exempt
 def create_order(request):
     """
-    ✅ Create a Razorpay order and link it to the logged-in user.
+     Create a Razorpay order and link it to the logged-in user.
     Keeps logic compatible with your frontend.
     """
     if request.method == "POST":
@@ -90,6 +90,8 @@ def verify_payment(request):
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
             user = User.objects.get(id=user_id)
+            print("RAZORPAY_KEY_ID from settings:", settings.RAZORPAY_KEY_ID)
+            print("RAZORPAY_KEY_SECRET from settings:", settings.RAZORPAY_KEY_SECRET)
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
             # Step 1: Verify signature
