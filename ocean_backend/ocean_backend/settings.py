@@ -41,7 +41,7 @@ CLOUDINARY_STORAGE = {
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -49,6 +49,7 @@ ALLOWED_HOSTS = [
     "grandiosely-unpostered-linsey.ngrok-free.dev",
 ]
 
+ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
@@ -85,13 +86,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'allauth.account.middleware.AccountMiddleware'
+    'allauth.account.middleware.AccountMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware"
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # vite
       # create-react-app
     "http://127.0.0.1:5173",
 ]
+
 from datetime import timedelta
 
 REST_FRAMEWORK = {
@@ -184,3 +187,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR /'media'
+STATIC_ROOT = BASE_DIR / "staticfiles"
