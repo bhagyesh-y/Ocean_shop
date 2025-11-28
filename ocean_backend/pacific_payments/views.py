@@ -82,68 +82,61 @@ def create_order(request):
 @csrf_exempt
 def verify_payment(request):
     if request.method == "POST":
-
         try:
-            body = request.body.decode("utf-8")
-            print("🔴 RAW BODY RECEIVED:", body)
+            print("\n🔵 METHOD:", request.method)
+            print("🔵 CONTENT TYPE:", request.content_type)
+            print("🔵 RAW BODY:", request.body.decode("utf-8"))
 
-            data = json.loads(body)
             data = json.loads(request.body)
+
             user_id = data.get("user_id")
+            key_id = data.get("key_id")
 
             if not user_id:
                 return JsonResponse({"error": "user_id is required"}, status=400)
+            if not key_id:
+                return JsonResponse({"error": "key_id missing"}, status=400)
 
             user = User.objects.get(id=user_id)
-            print("RAZORPAY_KEY_ID from settings:", settings.RAZORPAY_KEY_ID)
-            print("RAZORPAY_KEY_SECRET from settings:", settings.RAZORPAY_KEY_SECRET)
-            key_id = data.get("key_id")
 
-            if not key_id:
-                return JsonResponse({"error": "Missing key_id from frontend"}, status=400)
-            client = razorpay.Client(auth=( str(settings.RAZORPAY_KEY_ID).strip(),
-                                            str(settings.RAZORPAY_KEY_SECRET).strip()))
+            # Razorpay client
+            client = razorpay.Client(auth=(
+                settings.RAZORPAY_KEY_ID,
+                settings.RAZORPAY_KEY_SECRET
+            ))
 
-            # Step 1: Verify signature
+            # 🚀 Step 1: Verify signature ONLY
             client.utility.verify_payment_signature({
                 "razorpay_order_id": data["razorpay_order_id"],
                 "razorpay_payment_id": data["razorpay_payment_id"],
                 "razorpay_signature": data["razorpay_signature"],
             })
 
-            # Step 2: Fetch payment info
-            payment_info = client.payment.fetch(data["razorpay_payment_id"])
+            # 🚀 Step 2: Do NOT call payment.fetch() anymore!
 
-            # Step 3: Update order
+            # Step 3: Update database
             order = OceanOrder.objects.get(order_id=data["razorpay_order_id"], user=user)
             order.is_paid = True
             order.payment_id = data["razorpay_payment_id"]
-            order.status = payment_info.get("status", "paid")
-            order.method = payment_info.get("method")
-            order.email = payment_info.get("email")
-            order.contact = payment_info.get("contact")
-            order.currency = payment_info.get("currency", "INR")
+            order.status = "paid"
+            order.method = "razorpay"
+            order.currency = "INR"
             order.save()
 
-            # Step 4: Payment history
+            # Payment history
             payment_history = PaymentHistory.objects.create(
                 user=user,
                 order_id=order.order_id,
                 payment_id=order.payment_id,
                 amount=order.amount,
-                method=order.method or "unknown",
+                method="razorpay",
                 status="success",
             )
-            recipient_email=payment_info.get("email") # new line added from gemini 
-            # ✅ Step 5: Generate and link invoice
-            invoice = save_and_email_invoice(order=order, user=user, payment=payment_history,recipient_email=recipient_email )# parameter also 
 
-            # ✅ Make sure the invoice references this payment
-            if not invoice.payment:
-                invoice.payment = payment_history
-                invoice.save()
+            # Generate invoice
+            invoice = save_and_email_invoice(order, user, payment_history)
 
-            print(f"✅ Payment verified for {user.username}, invoice #{invoice.id}")
+            print("✅ Payment verified successfully!")
             return JsonResponse({"status": "Payment Successful"})
 
         except Exception as e:
