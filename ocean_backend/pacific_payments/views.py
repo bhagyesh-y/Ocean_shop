@@ -82,6 +82,11 @@ def create_order(request):
 @csrf_exempt
 def verify_payment(request):
     if request.method == "POST":
+        
+        print("🔍 METHOD:", request.method)
+        print("🔍 CONTENT TYPE:", request.content_type)
+        print("🔍 RAW BODY:", request.body)
+
         try:
             data = json.loads(request.body)
             user_id = data.get("user_id")
