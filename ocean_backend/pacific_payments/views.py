@@ -92,6 +92,10 @@ def verify_payment(request):
             user = User.objects.get(id=user_id)
             print("RAZORPAY_KEY_ID from settings:", settings.RAZORPAY_KEY_ID)
             print("RAZORPAY_KEY_SECRET from settings:", settings.RAZORPAY_KEY_SECRET)
+            key_id = data.get("key_id")
+
+            if not key_id:
+                return JsonResponse({"error": "Missing key_id from frontend"}, status=400)
             client = razorpay.Client(auth=( str(settings.RAZORPAY_KEY_ID).strip(),
                                             str(settings.RAZORPAY_KEY_SECRET).strip()))
 
