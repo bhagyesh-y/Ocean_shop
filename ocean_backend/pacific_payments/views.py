@@ -77,25 +77,15 @@ def create_order(request):
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-
-
 @csrf_exempt
 def verify_payment(request):
     if request.method == "POST":
         try:
-            print("\n🔵 METHOD:", request.method)
-            print("🔵 CONTENT TYPE:", request.content_type)
-            print("🔵 RAW BODY:", request.body.decode("utf-8"))
-
             data = json.loads(request.body)
-
             user_id = data.get("user_id")
-            key_id = data.get("key_id")
 
             if not user_id:
                 return JsonResponse({"error": "user_id is required"}, status=400)
-            if not key_id:
-                return JsonResponse({"error": "key_id missing"}, status=400)
 
             user = User.objects.get(id=user_id)
 
@@ -112,10 +102,11 @@ def verify_payment(request):
                 "razorpay_signature": data["razorpay_signature"],
             })
 
-            # 🚀 Step 2: Do NOT call payment.fetch() anymore!
-
-            # Step 3: Update database
-            order = OceanOrder.objects.get(order_id=data["razorpay_order_id"], user=user)
+            # 🚀 Step 2: Update database WITHOUT calling Razorpay payment.fetch()
+            order = OceanOrder.objects.get(
+                order_id=data["razorpay_order_id"],
+                user=user
+            )
             order.is_paid = True
             order.payment_id = data["razorpay_payment_id"]
             order.status = "paid"
@@ -123,7 +114,6 @@ def verify_payment(request):
             order.currency = "INR"
             order.save()
 
-            # Payment history
             payment_history = PaymentHistory.objects.create(
                 user=user,
                 order_id=order.order_id,
@@ -133,15 +123,18 @@ def verify_payment(request):
                 status="success",
             )
 
-            # Generate invoice
-            invoice = save_and_email_invoice(order, user, payment_history)
+            save_and_email_invoice(order, user, payment_history)
 
-            print("✅ Payment verified successfully!")
-            return JsonResponse({"status": "Payment Successful"})
+            return JsonResponse({
+                "status": "Payment Successful"
+            })
 
         except Exception as e:
             print("❌ Payment verification error:", e)
-            return JsonResponse({"status": "Payment Verification Failed", "error": str(e)}, status=400)
+            return JsonResponse({
+                "status": "Payment Verification Failed",
+                "error": str(e)
+            }, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
