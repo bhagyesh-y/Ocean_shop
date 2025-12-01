@@ -12,6 +12,9 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+    # This will crash the deployment if keys are missing/null, which is good
+    raise EnvironmentError("Razorpay keys must be set in Render environment variables!")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
