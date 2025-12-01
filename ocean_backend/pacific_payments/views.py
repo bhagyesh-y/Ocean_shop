@@ -88,15 +88,11 @@ def verify_payment(request):
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
             user = User.objects.get(id=user_id)
-            if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
-                print("❌ Razorpay keys missing!")
-                print(f"Key ID: {settings.RAZORPAY_KEY_ID}")
-                print(f"Key Secret exists: {bool(settings.RAZORPAY_KEY_SECRET)}")
-                return JsonResponse({
-                    "status": "Payment Verification Failed",
-                    "error": "Razorpay configuration error. Please contact support."
-                }, status=500)
+            
+            print(f"🔑 RAZORPAY_KEY_ID: {settings.RAZORPAY_KEY_ID[:8]}..." if settings.RAZORPAY_KEY_ID else "None")
+            print(f"🔑 RAZORPAY_KEY_SECRET exists: {bool(settings.RAZORPAY_KEY_SECRET)}")
 
+           
             # Razorpay client
             client = razorpay.Client(auth=(
                 settings.RAZORPAY_KEY_ID,
@@ -104,6 +100,7 @@ def verify_payment(request):
             ))
 
             print(f"🔍 Verifying payment: {data.get('razorpay_payment_id')}")
+            
             # Verify signature ONLY
             client.utility.verify_payment_signature({
                 "razorpay_order_id": data["razorpay_order_id"],
@@ -124,6 +121,8 @@ def verify_payment(request):
             order.method = "razorpay"
             order.currency = "INR"
             order.save()
+            
+            print("✅ Order updated successfully")
 
             payment_history = PaymentHistory.objects.create(
                 user=user,
@@ -133,24 +132,59 @@ def verify_payment(request):
                 method="razorpay",
                 status="success",
             )
+            print("✅ Payment history created successfully")
 
-            save_and_email_invoice(order, user, payment_history)
+            try:
+                print("📧 Starting invoice generation...")
+                save_and_email_invoice(order, user, payment=None)
+                print("✅ Invoice generated and emailed successfully")
+            except Exception as invoice_error:
+                print(f"⚠️ Invoice generation failed: {invoice_error}")
+                print(f"⚠️ Error type: {type(invoice_error).__name__}")
+                import traceback
+                print("⚠️ Full traceback:")
+                traceback.print_exc()
+                # Don't fail the payment verification
+
+            print("🎉 Payment verification completed successfully")
 
             return JsonResponse({
                 "status": "Payment Successful"
             })
 
+        except razorpay.errors.SignatureVerificationError as e:
+            print("❌ Signature verification failed:", e)
+            return JsonResponse({
+                "status": "Payment Verification Failed",
+                "error": "Invalid payment signature"
+            }, status=400)
+            
+        except OceanOrder.DoesNotExist:
+            print("❌ Order not found")
+            return JsonResponse({
+                "status": "Payment Verification Failed",
+                "error": "Order not found"
+            }, status=404)
+            
+        except User.DoesNotExist:
+            print("❌ User not found")
+            return JsonResponse({
+                "status": "Payment Verification Failed",
+                "error": "User not found"
+            }, status=404)
+            
         except Exception as e:
             print("❌ Payment verification error:", e)
-            print("Error type:", type(e).__name__)
+            print(f"❌ Error type: {type(e).__name__}")
+            import traceback
+            print("❌ Full traceback:")
+            traceback.print_exc()
             return JsonResponse({
                 "status": "Payment Verification Failed",
                 "error": str(e)
             }, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
-
-
 # webhook to handle razorpay payment status updates 
 @csrf_exempt
 def razorpay_webhook(request):
