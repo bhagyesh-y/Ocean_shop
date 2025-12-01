@@ -39,7 +39,7 @@ const Login = () => {
     try {
       const credential = response.credential;
 
-      const res = await fetch("http://127.0.0.1:8000/api/google-login/", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credential }),
@@ -57,7 +57,7 @@ const Login = () => {
       localStorage.setItem("oceanUser", JSON.stringify(data.user))
 
       // Fetch user profile
-      const profileRes = await fetch("http://127.0.0.1:8000/api/profile/", {
+      const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
         headers: {
           Authorization: `Bearer ${data.access}`,
         },

@@ -88,6 +88,14 @@ def verify_payment(request):
                 return JsonResponse({"error": "user_id is required"}, status=400)
 
             user = User.objects.get(id=user_id)
+            if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
+                print("❌ Razorpay keys missing!")
+                print(f"Key ID: {settings.RAZORPAY_KEY_ID}")
+                print(f"Key Secret exists: {bool(settings.RAZORPAY_KEY_SECRET)}")
+                return JsonResponse({
+                    "status": "Payment Verification Failed",
+                    "error": "Razorpay configuration error. Please contact support."
+                }, status=500)
 
             # Razorpay client
             client = razorpay.Client(auth=(
@@ -95,14 +103,17 @@ def verify_payment(request):
                 settings.RAZORPAY_KEY_SECRET
             ))
 
-            # 🚀 Step 1: Verify signature ONLY
+            print(f"🔍 Verifying payment: {data.get('razorpay_payment_id')}")
+            # Verify signature ONLY
             client.utility.verify_payment_signature({
                 "razorpay_order_id": data["razorpay_order_id"],
                 "razorpay_payment_id": data["razorpay_payment_id"],
                 "razorpay_signature": data["razorpay_signature"],
             })
+            
+            print("✅ Signature verified successfully")
 
-            # 🚀 Step 2: Update database WITHOUT calling Razorpay payment.fetch()
+            #  Update database WITHOUT calling Razorpay payment.fetch()
             order = OceanOrder.objects.get(
                 order_id=data["razorpay_order_id"],
                 user=user
@@ -131,6 +142,7 @@ def verify_payment(request):
 
         except Exception as e:
             print("❌ Payment verification error:", e)
+            print("Error type:", type(e).__name__)
             return JsonResponse({
                 "status": "Payment Verification Failed",
                 "error": str(e)

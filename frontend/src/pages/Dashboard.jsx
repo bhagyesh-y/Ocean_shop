@@ -10,6 +10,7 @@ const Dashboard = () => {
     const [atlanticFade, setAtlanticFade] = useState(false);
     const [recentOrders, setRecentOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
+    const BASE_URL = import.meta.env.VITE_API_URL;
 
     const userOcean = {
         name: oceanUser?.first_name || oceanUser?.username || "Guest User",
@@ -30,11 +31,12 @@ const Dashboard = () => {
                     return;
                 }
 
-                const res = await fetch("http://127.0.0.1:8000/api/payments/recent/", {
+                const res = await fetch(`${BASE_URL}/payments/recent/`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
                 });
+
 
                 if (!res.ok) throw new Error("Failed to fetch orders");
                 const data = await res.json();

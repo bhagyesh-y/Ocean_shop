@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
 const PaymentButton = ({ totalAmount, user }) => {
     const [loading, setLoading] = useState(false);
 
@@ -14,7 +17,7 @@ const PaymentButton = ({ totalAmount, user }) => {
     const handlePayment = async () => {
         setLoading(true);
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
+            const res = await fetch(`${BASE_URL}/payments/create-order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -27,18 +30,28 @@ const PaymentButton = ({ totalAmount, user }) => {
             setLoading(false);
 
             const options = {
-                key: data.key,
+                key: RAZORPAY_KEY,
                 amount: totalAmount * 100,
                 currency: "INR",
                 name: "Ocean Store 🌊",
                 description: "Order Payment",
                 order_id: data.order_id,
+
                 handler: async function (response) {
-                    const verify = await fetch("http://127.0.0.1:8000/api/payments/verify-payment/", {
+                    const verify = await fetch(`${BASE_URL}/payments/verify-payment/`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(response),
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            user_id: user.id,
+                            key_id: RAZORPAY_KEY,
+                        })
+
                     });
+                    console.log("Sending key_id:", key_id)
+
                     const verifyData = await verify.json();
 
                     if (verifyData.status === "Payment Successful") {

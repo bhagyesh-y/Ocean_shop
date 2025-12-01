@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { toast, Bounce } from "react-toastify";
 import { motion } from "framer-motion";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ const PaymentHistory = () => {
                     return;
                 }
 
-                const response = await fetch("http://127.0.0.1:8000/api/payments/history/", {
+                const response = await fetch(`${BASE_URL}/payments/history/`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json",
@@ -68,16 +70,25 @@ const PaymentHistory = () => {
 
         fetchPayments();
     }, []);
+
     // Fetch analytics
     useEffect(() => {
         const fetchAnalytics = async () => {
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-            const res = await fetch("http://127.0.0.1:8000/api/payments/analytics/user/", {
-                headers: { Authorization: `Bearer ${tokens.access}` },
-            });
-            const data = await res.json();
-            setAnalytics(data);
+            try {
+                const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+                const access = tokens?.access;
+
+                const res = await fetch(`${BASE_URL}/payments/analytics/user/`, {
+                    headers: { Authorization: `Bearer ${access}` },
+                });
+
+                const data = await res.json();
+                setAnalytics(data);
+            } catch (err) {
+                console.error("Analytics load error:", err);
+            }
         };
+
         fetchAnalytics();
     }, []);
 

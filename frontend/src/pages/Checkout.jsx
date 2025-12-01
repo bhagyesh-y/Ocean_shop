@@ -1,7 +1,7 @@
 import React from "react";
 import PaymentButton from "../components/PaymentButton";
 
-const CheckoutPage = ({ cartItems, totalAmount, user }) => {
+const Checkout = ({ cartItems, totalAmount, user }) => {
     return (
         <div className="container py-5">
             <h2 className="mb-4 text-center">Checkout Summary 🛒</h2>
@@ -24,4 +24,4 @@ const CheckoutPage = ({ cartItems, totalAmount, user }) => {
     );
 };
 
-export default CheckoutPage;
+export default Checkout;

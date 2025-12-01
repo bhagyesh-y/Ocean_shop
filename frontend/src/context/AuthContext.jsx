@@ -11,7 +11,8 @@ export const OceanAuthProvider = ({ children }) => {
             : null
     );
 
-    const apiUrl = "http://127.0.0.1:8000/api";
+    //  Using backend URL from Vite environment
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     // 🌊 LOGIN
     const oceanLogin = async (username, password) => {
@@ -20,6 +21,7 @@ export const OceanAuthProvider = ({ children }) => {
                 username,
                 password,
             });
+
             setOceanTokens(response.data);
             localStorage.setItem("oceanTokens", JSON.stringify(response.data));
 
@@ -43,6 +45,7 @@ export const OceanAuthProvider = ({ children }) => {
 
             console.log("Registration successful:", response.data);
             return await oceanLogin(username, password);
+
         } catch (err) {
             console.error("Registration failed:", err.response?.data);
             return false;
@@ -55,15 +58,17 @@ export const OceanAuthProvider = ({ children }) => {
             const response = await axios.get(`${apiUrl}/profile/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
             setOceanUser(response.data);
             localStorage.setItem("oceanUser", JSON.stringify(response.data));
+
         } catch (err) {
             console.error("Fetching profile failed:", err);
             logoutUser();
         }
     };
 
-    // 🌊 GOOGLE LOGIN helper 
+    // 🌊 Google login helper
     const oceanSetGoogleLogin = (tokens, user) => {
         localStorage.setItem("oceanTokens", JSON.stringify(tokens));
         localStorage.setItem("oceanUser", JSON.stringify(user));
@@ -79,15 +84,17 @@ export const OceanAuthProvider = ({ children }) => {
         localStorage.removeItem("oceanTokens");
     };
 
-    // 🌊 auto-load saved login
+    // 🌊 Auto-load login (refresh persistence)
     useEffect(() => {
         const storedTokens = localStorage.getItem("oceanTokens");
         const storedUser = localStorage.getItem("oceanUser");
+
         if (storedTokens && storedUser) {
             setOceanTokens(JSON.parse(storedTokens));
             setOceanUser(JSON.parse(storedUser));
             return;
         }
+
         if (storedTokens) {
             const parsedTokens = JSON.parse(storedTokens);
             setOceanTokens(parsedTokens);

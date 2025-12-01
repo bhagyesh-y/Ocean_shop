@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 import { motion } from "framer-motion";
 
+
 const Cart = () => {
     const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext);
     const [fadeIn, setFadeIn] = useState(false);
@@ -11,6 +12,8 @@ const Cart = () => {
     const [showModal, setShowModal] = useState(false);
     const [loadingPayment, setLoadingPayment] = useState(false); // 🌀 Loader
     const navigate = useNavigate();
+    const BASE_URL = import.meta.env.VITE_API_URL;
+
 
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150); // soft fade-in
@@ -27,7 +30,7 @@ const Cart = () => {
                 const accessToken = tokens?.access;
 
                 if (!user || !accessToken) return;
-                const response = await fetch("http://127.0.0.1:8000/api/cart/", {
+                const response = await fetch(`${BASE_URL}/cart/`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json",
@@ -76,7 +79,8 @@ const Cart = () => {
 
             const amount = totalPrice;
 
-            const response = await fetch("http://127.0.0.1:8000/api/payments/create-order/", {
+            // Create order
+            const response = await fetch(`${BASE_URL}/payments/create-order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -92,6 +96,7 @@ const Cart = () => {
                 return;
             }
 
+            console.log("🔵 FRONTEND KEY BEFORE OPENING RAZORPAY:", data.key);
             const options = {
                 key: data.key,
                 amount: data.amount * 100,
@@ -104,8 +109,9 @@ const Cart = () => {
 
                 handler: async function (response) {
                     try {
+                        // Verify payment
                         const verifyResponse = await fetch(
-                            "http://127.0.0.1:8000/api/payments/verify-payment/",
+                            `${BASE_URL}/payments/verify-payment/`,
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -113,7 +119,8 @@ const Cart = () => {
                                     razorpay_order_id: response.razorpay_order_id,
                                     razorpay_payment_id: response.razorpay_payment_id,
                                     razorpay_signature: response.razorpay_signature,
-                                    user_id: user_id,
+                                    user_id: user.id,
+                                    key: data.key
                                 }),
                             }
                         );
@@ -123,7 +130,7 @@ const Cart = () => {
                         if (verifyData.status === "Payment Successful") {
                             toast.success("Payment Successful 🌊", { theme: "colored" });
 
-                            // Optional: small success flash before redirect
+                            // small success flash before redirect
                             setTimeout(() => {
                                 clearCart();
                                 navigate("/payment-history");
