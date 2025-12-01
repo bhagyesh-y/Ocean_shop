@@ -128,58 +128,74 @@ def save_and_email_invoice(order, user, payment=None, recipient_email=None):
     Generates the invoice PDF, uploads it, saves the invoice record,
     and emails the PDF to the specified recipient.
     """
-    pdf_bytes = generate_invoice_pdf(order, user, payment)
+    try:
+        print("📝 Step 1: Generating PDF...")
+        pdf_bytes = generate_invoice_pdf(order, user, payment)
+        print(f"✅ PDF generated: {len(pdf_bytes)} bytes")
 
     # Resolve the email to send the invoice to
-    final_recipient_email = recipient_email if recipient_email else user.email
+        final_recipient_email = recipient_email if recipient_email else user.email
     
-    if not final_recipient_email:
-        print("❌ Cannot send invoice: No recipient email found in user object or recipient_email argument.")
+        if not final_recipient_email:
+            print("❌ Cannot send invoice: No recipient email found in user object or recipient_email argument.")
         # Proceed with saving the invoice URL, but skip the email
-        final_recipient_email = user.email # Use this for logging/DB if needed
+            final_recipient_email = user.email # Use this for logging/DB if needed
 
     # ⭐ Upload as RAW file to Cloudinary
-    upload_result = cloudinary.uploader.upload(
+        print(" Step 2:Uploading pdf to cloudinary...")
+        upload_result = cloudinary.uploader.upload(
         pdf_bytes,
         resource_type="raw",
         folder="ocean/invoices",
         public_id=f"invoice_{order.order_id}"
-    )
-
-    pdf_url = upload_result["secure_url"]
-
-    # ⭐ Save invoice (ONLY URL stored)
-    invoice, created = OceanInvoice.objects.get_or_create(
-        payment=payment,
-        defaults={
-            "user": user,
-            "order": order, 
-            "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
-            "issue_date": timezone.now(),
-            "due_date": timezone.now() + timedelta(days=7),
-            "pdf_url": pdf_url,
-        }
-    )
-
-    # ⭐ Send email only once
-    if created and final_recipient_email:
-        print(f"DEBUG: Attempting to send invoice to email: {final_recipient_email} (User ID: {user.id})") 
-        email = EmailMessage(
-            subject=f"Invoice for Order {order.order_id}",
-            body=(
-                f"Hello {user.first_name or user.username},\n\n"
-                f"Thank you for your purchase! Attached is your invoice.\n\n"
-                f"Regards,\nOceanCart 🌊"
-            ),
-            from_email=settings.EMAIL_HOST_USER,
-            to=[final_recipient_email], # <--- USING THE RESOLVED EMAIL
         )
-        email.attach(f"invoice_{order.order_id}.pdf", pdf_bytes, "application/pdf")
-        
-        try:
-            email.send(fail_silently=False)
-            print("✅ Invoice email sent successfully.")
-        except Exception as e:
-             print(f"❌ Error sending invoice email to {final_recipient_email}: {e}")
 
-    return invoice
+        pdf_url = upload_result["secure_url"]
+        print(f"✅ Uploaded to Cloudinary: {pdf_url}")
+
+         # ⭐ Save invoice (ONLY URL stored)
+        print("💾 Step 3: Saving invoice to database...")
+        invoice, created = OceanInvoice.objects.get_or_create(
+        # payment=payment,
+            order=order,
+            defaults={
+                 "user": user,
+                 # "order": order, 
+                 "payment":payment,
+                 "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
+                 "issue_date": timezone.now(),
+                 "due_date": timezone.now() + timedelta(days=7),
+                 "pdf_url": pdf_url,
+            }
+        
+        )
+        print(f"✅ Invoice {'created' if created else 'already exists'}: {invoice.invoice_number}")
+
+      # ⭐ Send email only once
+        if created and final_recipient_email:
+            print(f"DEBUG: Attempting to send invoice to email:  {final_recipient_email} (User ID: {user.id})") 
+            email = EmailMessage(
+                 subject=f"Invoice for Order {order.order_id}",
+                 body=(
+                     f"Hello {user.first_name or user.username},\n\n"
+                     f"Thank you for your purchase! Attached is your invoice.\n\n"
+                     f"Regards,\nOceanCart 🌊"
+                 ),
+                 from_email=settings.EMAIL_HOST_USER,
+                 to=[final_recipient_email], # <--- USING THE RESOLVED EMAIL
+            )
+            email.attach(f"invoice_{order.order_id}.pdf", pdf_bytes, "application/pdf")
+        
+            try:
+               email.send(fail_silently=False)
+               print("✅ Invoice email sent successfully.")
+            except Exception as e:
+               print(f"❌ Error sending invoice email to {final_recipient_email}: {e}")
+        print("✅ save_and_email_invoice completed successfully")
+        return invoice
+    except Exception as e:
+        print(f"❌ Error in save_and_email_invoice: {e}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        raise

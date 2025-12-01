@@ -58,13 +58,14 @@ class OceanInvoice(models.Model):
     invoice_date = models.DateField(auto_now_add=True)
     issue_date = models.DateTimeField(default=timezone.now)
     due_date = models.DateTimeField(blank=True, null=True)
+    
     payment = models.ForeignKey(
         PaymentHistory,
         on_delete=models.CASCADE,
-        related_name='invoices'
+        related_name='invoices',
     )
 
-    # ⭐ This is the real Cloudinary upload
+    # ⭐ This is the  Cloudinary upload
     pdf_file = models.FileField(
         upload_to="invoices/",
         storage=MediaCloudinaryStorage(),

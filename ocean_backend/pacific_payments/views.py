@@ -144,7 +144,6 @@ def verify_payment(request):
                 import traceback
                 print("⚠️ Full traceback:")
                 traceback.print_exc()
-                # Don't fail the payment verification
 
             print("🎉 Payment verification completed successfully")
 
@@ -164,13 +163,6 @@ def verify_payment(request):
             return JsonResponse({
                 "status": "Payment Verification Failed",
                 "error": "Order not found"
-            }, status=404)
-            
-        except User.DoesNotExist:
-            print("❌ User not found")
-            return JsonResponse({
-                "status": "Payment Verification Failed",
-                "error": "User not found"
             }, status=404)
             
         except Exception as e:
