@@ -49,10 +49,8 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "grandiosely-unpostered-linsey.ngrok-free.dev",
+    "ocean-shop-r4s4.onrender.com",
 ]
-
-ALLOWED_HOSTS = ["*"]
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -92,11 +90,18 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware"
 ]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # vite
-      # create-react-app
+    "http://localhost:5173",  
     "http://127.0.0.1:5173",
     "https://ocean-shop-r4s4.onrender.com",
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://ocean-shop-r4s4.onrender.com",
+]
+
+CORS_ALLOW_CREDENTIALS = True 
 
 CORS_ALLOW_HEADERS = [
     'accept',
