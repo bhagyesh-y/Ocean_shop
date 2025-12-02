@@ -156,11 +156,9 @@ def save_and_email_invoice(order, user, payment=None, recipient_email=None):
          # ⭐ Save invoice (ONLY URL stored)
         print("💾 Step 3: Saving invoice to database...")
         invoice, created = OceanInvoice.objects.get_or_create(
-        # payment=payment,
             order=order,
             defaults={
                  "user": user,
-                 # "order": order, 
                  "payment":payment,
                  "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
                  "issue_date": timezone.now(),
