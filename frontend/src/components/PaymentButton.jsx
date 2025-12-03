@@ -17,7 +17,7 @@ const PaymentButton = ({ totalAmount, user }) => {
     const handlePayment = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${BASE_URL}/payments/create-order/`, {
+            const res = await fetch(`${BASE_URL}/api/payments/create-order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -38,7 +38,7 @@ const PaymentButton = ({ totalAmount, user }) => {
                 order_id: data.order_id,
 
                 handler: async function (response) {
-                    const verify = await fetch(`${BASE_URL}/payments/verify-payment/`, {
+                    const verify = await fetch(`${BASE_URL}/api/payments/verify-payment/`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({

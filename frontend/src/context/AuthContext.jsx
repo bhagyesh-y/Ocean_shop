@@ -17,7 +17,7 @@ export const OceanAuthProvider = ({ children }) => {
     // 🌊 LOGIN
     const oceanLogin = async (username, password) => {
         try {
-            const response = await axios.post(`${apiUrl}/token/`, {
+            const response = await axios.post(`${apiUrl}/api/token/`, {
                 username,
                 password,
             });
@@ -36,7 +36,7 @@ export const OceanAuthProvider = ({ children }) => {
     // 🌊 REGISTER
     const oceanRegister = async (username, email, password, confirmPassword) => {
         try {
-            const response = await axios.post(`${apiUrl}/register/`, {
+            const response = await axios.post(`${apiUrl}/api/register/`, {
                 username,
                 email,
                 password,
@@ -55,7 +55,7 @@ export const OceanAuthProvider = ({ children }) => {
     // 🌊 PROFILE
     const fetchProfile = async (token) => {
         try {
-            const response = await axios.get(`${apiUrl}/profile/`, {
+            const response = await axios.get(`${apiUrl}/api/profile/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

@@ -30,7 +30,7 @@ const Cart = () => {
                 const accessToken = tokens?.access;
 
                 if (!user || !accessToken) return;
-                const response = await fetch(`${BASE_URL}/cart/`, {
+                const response = await fetch(`${BASE_URL}/api/cart/`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json",
@@ -80,7 +80,7 @@ const Cart = () => {
             const amount = totalPrice;
 
             // Create order
-            const response = await fetch(`${BASE_URL}/payments/create-order/`, {
+            const response = await fetch(`${BASE_URL}/api/payments/create-order/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

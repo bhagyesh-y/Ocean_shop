@@ -31,7 +31,7 @@ const Dashboard = () => {
                     return;
                 }
 
-                const res = await fetch(`${BASE_URL}/payments/recent/`, {
+                const res = await fetch(`${BASE_URL}/api/payments/recent/`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },

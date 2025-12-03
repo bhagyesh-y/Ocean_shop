@@ -34,12 +34,12 @@ const Login = () => {
     }
   };
 
-  // 🌊 Google OAuth
+  // Login with google
   const handleGoogleSuccess = async (response) => {
     try {
       const credential = response.credential;
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/google-login/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credential }),
@@ -57,7 +57,7 @@ const Login = () => {
       localStorage.setItem("oceanUser", JSON.stringify(data.user))
 
       // Fetch user profile
-      const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+      const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/`, {
         headers: {
           Authorization: `Bearer ${data.access}`,
         },

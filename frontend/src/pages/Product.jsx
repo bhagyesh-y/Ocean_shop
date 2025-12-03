@@ -51,7 +51,7 @@ const Products = () => {
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // 🎞️ Framer Motion Variants
+    //  Framer Motion Variants
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {

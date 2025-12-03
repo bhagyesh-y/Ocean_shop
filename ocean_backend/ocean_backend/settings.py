@@ -31,6 +31,7 @@ INVOICE_FILENAME_PREFIX = os.getenv("INVOICE_FILENAME_PREFIX", "ocean_invoice_")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
+MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'media')
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -201,6 +202,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR /'media'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

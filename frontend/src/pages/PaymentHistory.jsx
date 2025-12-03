@@ -49,7 +49,7 @@ const PaymentHistory = () => {
                     return;
                 }
 
-                const response = await fetch(`${BASE_URL}/payments/history/`, {
+                const response = await fetch(`${BASE_URL}/api/payments/history/`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json",
@@ -78,7 +78,7 @@ const PaymentHistory = () => {
                 const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
                 const access = tokens?.access;
 
-                const res = await fetch(`${BASE_URL}/payments/analytics/user/`, {
+                const res = await fetch(`${BASE_URL}/api/payments/analytics/user/`, {
                     headers: { Authorization: `Bearer ${access}` },
                 });
 

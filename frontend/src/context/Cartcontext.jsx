@@ -13,7 +13,7 @@ export const CartProvider = ({ children }) => {
             const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
             const accessToken = tokens?.access;
 
-            const response = await fetch(`${BASE_URL}/cart/`, {
+            const response = await fetch(`${BASE_URL}/api/cart/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export const CartProvider = ({ children }) => {
                 return;
             }
 
-            await fetch(`${BASE_URL}/cart/clear/`, {
+            await fetch(`${BASE_URL}/api/cart/clear/`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
