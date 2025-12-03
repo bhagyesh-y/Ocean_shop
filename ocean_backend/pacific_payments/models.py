@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from cloudinary_storage.storage import MediaCloudinaryStorage
 
 
 class OceanOrder(models.Model):
@@ -65,10 +64,9 @@ class OceanInvoice(models.Model):
         related_name='invoices',
     )
 
-    # ⭐ This is the  Cloudinary upload
+    #  invoice upload to media folder 
     pdf_file = models.FileField(
         upload_to="invoices/",
-        storage=MediaCloudinaryStorage(),
         blank=True,
         null=True
     )

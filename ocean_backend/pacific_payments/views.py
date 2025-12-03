@@ -24,6 +24,7 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 from rest_framework.response import Response
 from .models import OceanInvoice
+import os
 
 @csrf_exempt
 def create_order(request):
@@ -237,33 +238,19 @@ def download_invoice(request, invoice_id):
     except OceanInvoice.DoesNotExist:
         raise Http404("Invoice not found for this user.")
 
-    # 2. Must have Cloudinary URL
+    # 2. Must have  URL
     if not invoice.pdf_url:
         raise Http404("Invoice PDF not available.")
+    
+    file_path = invoice.pdf_file.path  # full local path
 
-    # 3. Request PDF from Cloudinary (add headers to avoid block)
-    try:
-        cloudinary_response = requests.get(
-            invoice.pdf_url,
-            headers={"User-Agent": "Mozilla/5.0"},
-            stream=True,
-            timeout=10
-        )
-    except Exception as e:
-        print("Cloudinary download error:", e)
-        raise Http404("Unable to fetch invoice from Cloudinary.")
+    if not os.path.exists(file_path):
+        raise Http404("Invoice file not found on server.")
 
-    # 4. Verify successful download
-    if cloudinary_response.status_code != 200:
-        print("Cloudinary error status:", cloudinary_response.status_code)
-        raise Http404("Unable to download invoice file.")
-
-    pdf_content = cloudinary_response.content
-    filename = f"OceanInvoice_{invoice.invoice_number or invoice.id}.pdf"
-
-    # 5. Return file as attachment
-    response = HttpResponse(pdf_content, content_type="application/pdf")
+    filename = os.path.basename(file_path)
+    response = FileResponse(open(file_path, "rb"), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
     return response
 
 

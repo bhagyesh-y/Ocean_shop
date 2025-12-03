@@ -1,4 +1,4 @@
-import json
+import os
 from io import BytesIO
 from datetime import timedelta
 from django.utils import timezone
@@ -9,9 +9,9 @@ from xhtml2pdf import pisa
 from django.conf import settings
 from pacific_products.models import OceanCart
 from .models import OceanInvoice
-import cloudinary.uploader
 
 
+# Generating the PDF
 def generate_invoice_pdf(order, user, payment=None):
     """Generate a proper invoice PDF using an HTML template"""
     template_path = "invoice_template.html"
@@ -64,9 +64,7 @@ def generate_invoice_pdf(order, user, payment=None):
     context["items"] = final_items
     context["total"] = total_amount
 
-    # -----------------------------
     # Render PDF
-    # -----------------------------
     template = get_template(template_path)
     html = template.render(context)
 
@@ -78,60 +76,16 @@ def generate_invoice_pdf(order, user, payment=None):
 
     return result.getvalue()
 
-
-# def save_and_email_invoice(order, user, payment=None):
-#     pdf_bytes = generate_invoice_pdf(order, user, payment)
-
-#     # ⭐ Upload as RAW file to Cloudinary
-#     upload_result = cloudinary.uploader.upload(
-#         pdf_bytes,
-#         resource_type="raw",
-#         folder="ocean/invoices",
-#         public_id=f"invoice_{order.order_id}"
-#     )
-
-#     pdf_url = upload_result["secure_url"]
-
-#     # ⭐ Save invoice (ONLY URL stored)
-#     invoice, created = OceanInvoice.objects.get_or_create(
-#         payment=payment,
-#         defaults={
-#             "user": user,
-#             "order": order,
-#             "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
-#             "issue_date": timezone.now(),
-#             "due_date": timezone.now() + timedelta(days=7),
-#             "pdf_url": pdf_url,
-#         }
-#     )
-
-#     # ⭐ Send email only once
-#     if created:
-#         print(f"DEBUG: Attempting to send invoice to email: {user.email}") # for testing the currect user 
-#         email = EmailMessage(
-#             subject=f"Invoice for Order {order.order_id}",
-#             body=(
-#                 f"Hello {user.first_name or user.username},\n\n"
-#                 f"Thank you for your purchase! Attached is your invoice.\n\n"
-#                 f"Regards,\nOceanCart 🌊"
-#             ),
-#             from_email=settings.EMAIL_HOST_USER,
-#             to=[user.email],
-#         )
-#         email.attach(f"invoice_{order.order_id}.pdf", pdf_bytes, "application/pdf")
-#         email.send(fail_silently=False)
-
-#     return invoice
-
+# Save invoice locally + Email + Update database
 def save_and_email_invoice(order, user, payment=None, recipient_email=None):
     """
-    Generates the invoice PDF, uploads it, saves the invoice record,
+    Generates the invoice PDF, saves the invoice record,
     and emails the PDF to the specified recipient.
     """
     try:
-        print("📝 Step 1: Generating PDF...")
+        print(" Generating PDF...")
         pdf_bytes = generate_invoice_pdf(order, user, payment)
-        print(f"✅ PDF generated: {len(pdf_bytes)} bytes")
+        print(f" PDF generated: {len(pdf_bytes)} bytes")
 
     # Resolve the email to send the invoice to
         final_recipient_email = recipient_email if recipient_email else user.email
@@ -141,17 +95,17 @@ def save_and_email_invoice(order, user, payment=None, recipient_email=None):
         # Proceed with saving the invoice URL, but skip the email
             final_recipient_email = user.email # Use this for logging/DB if needed
 
-    # ⭐ Upload as RAW file to Cloudinary
-        print(" Step 2:Uploading pdf to cloudinary...")
-        upload_result = cloudinary.uploader.upload(
-        pdf_bytes,
-        resource_type="raw",
-        folder="ocean/invoices",
-        public_id=f"invoice_{order.order_id}"
-        )
+        filename = f"invoice_{order.order_id}.pdf"
+        relative_path = f"invoices/{filename}"
+        full_path = os.path.join(settings.MEDIA_ROOT, relative_path)
 
-        pdf_url = upload_result["secure_url"]
-        print(f"✅ Uploaded to Cloudinary: {pdf_url}")
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+        with open(full_path, "wb") as f:
+            f.write(pdf_bytes)
+
+        pdf_url = settings.MEDIA_URL + relative_path  # /media/invoices/<file>.pdf
+
 
          # ⭐ Save invoice (ONLY URL stored)
         print("💾 Step 3: Saving invoice to database...")
@@ -180,13 +134,13 @@ def save_and_email_invoice(order, user, payment=None, recipient_email=None):
                      f"Regards,\nOceanCart 🌊"
                  ),
                  from_email=settings.EMAIL_HOST_USER,
-                 to=[final_recipient_email], # <--- USING THE RESOLVED EMAIL
+                 to=[final_recipient_email], 
             )
             email.attach(f"invoice_{order.order_id}.pdf", pdf_bytes, "application/pdf")
         
             try:
                email.send(fail_silently=False)
-               print("✅ Invoice email sent successfully.")
+               print(" Invoice email sent successfully.")
             except Exception as e:
                print(f"❌ Error sending invoice email to {final_recipient_email}: {e}")
         print("✅ save_and_email_invoice completed successfully")

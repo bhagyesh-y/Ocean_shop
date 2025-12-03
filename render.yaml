@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ocean-backend
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ocean_backend.wsgi:application"
+    plan: free
+    autoDeploy: true
+
+    envVars:
+      DJANGO_SETTINGS_MODULE: "ocean_backend.settings"
+      PYTHON_VERSION: "3.10"
+
+    disk:
+      name: media-disk
+      mountPath: /opt/render/project/src/media
+      sizeGB: 1

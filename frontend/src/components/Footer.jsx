@@ -9,7 +9,7 @@ const Footer = () => {
                 <div className="row text-start align-items-start">
                     {/* 🌊 About Cartify */}
                     <div className="col-lg-4 col-md-6 mb-5">
-                        <h5 className="fw-bold text-light">Cartify</h5>
+                        <h5 className="fw-bold text-light">Ocean Shop</h5>
                         <p className="text-light opacity-75 small mt-3">
                             Making shopping accessible and enjoyable for everyone. Explore,
                             buy, and grow with our modern e-commerce platform built for

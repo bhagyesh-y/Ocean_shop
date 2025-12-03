@@ -125,7 +125,7 @@ const About = () => {
                             <div className="row g-3">
                                 <div className="col-md-4">
                                     <div className="card shadow-sm p-3 ocean-card">
-                                        <h5 className="text-info">Bhagyesh Yadav</h5>
+                                        <h5 className="text-info">Mr.Bhagyesh Yadav</h5>
                                         <p>Founder & Full Stack Developer</p>
                                     </div>
                                 </div>

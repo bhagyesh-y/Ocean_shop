@@ -36,7 +36,7 @@ const QuickLinks = () => {
                 <section className="fade-up mb-5">
                     <h3>🔐 Privacy Policy</h3>
                     <p>
-                        At OceanCart, your privacy is our anchor. We collect only essential
+                        At Ocean Shop , your privacy is our anchor. We collect only essential
                         information required to process your orders and improve your shopping
                         experience. Your data is encrypted, securely stored, and never shared
                         with third-party advertisers.
