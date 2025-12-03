@@ -6,17 +6,24 @@ from .models import OceanCart
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 # 🌊 Products
 class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_context(self):
+        return {"request":self.request}
 
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_context(self):
+        return {"request":self.request}
 
 
 # 🌊 Cart Views (isolated per user)
@@ -31,6 +38,10 @@ class OceanCartListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         # Automatically assign user when adding item
         serializer.save(user=self.request.user)
+        
+    def get_serializer_context(self):
+        return {"request":self.request}
+    
 
 
 class OceanCartDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -40,6 +51,9 @@ class OceanCartDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         # Restrict access to user's own cart only
         return OceanCart.objects.filter(user=self.request.user)
+    def get_serializer_context(self):
+        return {"request":self.request}
+
 
 @api_view(['Delete'])
 @permission_classes([IsAuthenticated])
