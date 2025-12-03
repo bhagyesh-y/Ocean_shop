@@ -13,5 +13,5 @@ services:
 
     disk:
       name: media
-      mountPath: /opt/render/project/src/media
+      mountPath: /opt/render/project/src/ocean_backend/media
       sizeGB: 1
