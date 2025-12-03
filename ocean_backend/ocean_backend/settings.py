@@ -30,7 +30,7 @@ INVOICE_FILENAME_PREFIX = os.getenv("INVOICE_FILENAME_PREFIX", "ocean_invoice_")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
