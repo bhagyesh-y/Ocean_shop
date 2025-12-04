@@ -11,7 +11,11 @@ services:
       DJANGO_SETTINGS_MODULE: "ocean_backend.settings"
       PYTHON_VERSION: "3.10"
 
-    disk:
-      name: media
-      mountPath: /opt/render/project/src/ocean_backend/media
-      sizeGB: 1
+    disks:
+      - name: media
+        mountPath: /opt/render/project/src/ocean_backend/media
+        sizeGB: 1
+
+      - name: database
+        mountPath: /opt/render/project/src/ocean_backend/database
+        sizeGB: 1
