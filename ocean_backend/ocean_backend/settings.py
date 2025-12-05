@@ -3,6 +3,7 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 load_dotenv()
+import dj_database_url
 #GOOGLE AUTH KEYS
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 #RAZORPAY KEYS
@@ -32,7 +33,6 @@ INVOICE_FILENAME_PREFIX = os.getenv("INVOICE_FILENAME_PREFIX", "ocean_invoice_")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 MEDIA_ROOT = BASE_DIR / 'media'
-
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -152,13 +152,19 @@ WSGI_APPLICATION = 'ocean_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
+# DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#                'NAME': BASE_DIR /'ocean_backend'/ 'database' / 'db.sqlite3',
+#         }
+#     }
 DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-               'NAME': BASE_DIR / 'database' / 'db.sqlite3',
-        }
-    }
-
+    'default': dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=False
+    )
+}
 
 
 # Password validation
@@ -202,6 +208,6 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-MEDIA_URL = '/media/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+MEDIA_URL = "/media/"

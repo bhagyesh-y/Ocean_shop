@@ -13,7 +13,7 @@ services:
 
     disks:
       - name: media
-        mountPath: /opt/render/project/src/ocean_backend/media
+        mountPath: /opt/render/project/src/media
         sizeGB: 1
 
       - name: database
