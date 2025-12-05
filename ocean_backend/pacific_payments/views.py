@@ -137,7 +137,7 @@ def verify_payment(request):
 
             try:
                 print("📧 Starting invoice generation...")
-                # save_and_email_invoice(order, user, payment=payment_history)
+                save_and_email_invoice(order, user, payment=payment_history)
                 print("✅ Invoice generated and emailed successfully")
             except Exception as invoice_error:
                 print(f"⚠️ Invoice generation failed: {invoice_error}")
