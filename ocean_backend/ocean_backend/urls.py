@@ -6,6 +6,9 @@ from pacific_auth.views import GoogleLoginView
 from rest_framework import routers 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
+from django.urls import re_path
+import re 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -18,5 +21,17 @@ urlpatterns = [
     path('api/products/', include('pacific_products.urls')),
     path('api/payments/', include('pacific_payments.urls')),
 ]
-# if settings.DEBUG:
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# 👇 CRITICAL FOR PRODUCTION MEDIA SERVING ON RENDER (DEBUG=False)
+if not settings.DEBUG:
+    # This manually creates the URL pattern for /media/ to be handled 
+    # by Django's serve view, allowing CorsMiddleware to run.
+    urlpatterns += [
+        re_path(
+            r'^%s(?P<path>.*)$' % re.escape(settings.MEDIA_URL.lstrip('/')),
+            serve,
+            kwargs={'document_root': settings.MEDIA_ROOT}
+        )
+    ]
+else:
+    # Use the static helper for local development only
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
