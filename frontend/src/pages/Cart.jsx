@@ -111,7 +111,7 @@ const Cart = () => {
                     try {
                         // Verify payment
                         const verifyResponse = await fetch(
-                            `${BASE_URL}/payments/verify-payment/`,
+                            `${BASE_URL}/api/payments/verify-payment/`,
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
