@@ -1,13 +1,12 @@
 from django.contrib import admin
 from pacific_auth.views import RegisterView, ProfileView
-from django.urls import path,include
+from django.urls import path,include,re_path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from pacific_auth.views import GoogleLoginView
 from rest_framework import routers 
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
-from django.urls import re_path
 import re 
 
 urlpatterns = [
@@ -21,7 +20,7 @@ urlpatterns = [
     path('api/products/', include('pacific_products.urls')),
     path('api/payments/', include('pacific_payments.urls')),
 ]
-# 👇 CRITICAL FOR PRODUCTION MEDIA SERVING ON RENDER (DEBUG=False)
+
 if not settings.DEBUG:
     # This manually creates the URL pattern for /media/ to be handled 
     # by Django's serve view, allowing CorsMiddleware to run.
