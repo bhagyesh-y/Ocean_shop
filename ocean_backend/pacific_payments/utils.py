@@ -3,12 +3,14 @@ from io import BytesIO
 from datetime import timedelta
 from django.utils import timezone
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMessage
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from django.conf import settings
 from pacific_products.models import OceanCart
 from .models import OceanInvoice
+import base64
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail,Attachment,FileContent,FileName,FileType,Disposition
 
 
 # Generating the PDF
@@ -87,14 +89,14 @@ def save_and_email_invoice(order, user, payment=None, recipient_email=None):
         pdf_bytes = generate_invoice_pdf(order, user, payment)
         print(f" PDF generated: {len(pdf_bytes)} bytes")
 
-    # Resolve the email to send the invoice to
+        # Resolve recipient email
         final_recipient_email = recipient_email if recipient_email else user.email
-    
+        
         if not final_recipient_email:
-            print("❌ Cannot send invoice: No recipient email found in user object or recipient_email argument.")
-        # Proceed with saving the invoice URL, but skip the email
-            final_recipient_email = user.email # Use this for logging/DB if needed
+            print("❌ Cannot send invoice: No email found.")
+            final_recipient_email = user.email  # fallback
 
+        # Save PDF file locally
         filename = f"invoice_{order.order_id}.pdf"
         relative_path = f"invoices/{filename}"
         full_path = os.path.join(settings.MEDIA_ROOT, relative_path)
@@ -104,50 +106,66 @@ def save_and_email_invoice(order, user, payment=None, recipient_email=None):
         with open(full_path, "wb") as f:
             f.write(pdf_bytes)
 
-        pdf_url = settings.MEDIA_URL + relative_path  # /media/invoices/<file>.pdf
+        pdf_url = settings.MEDIA_URL + relative_path
 
-
-         # ⭐ Save invoice (ONLY URL stored)
+        # ⭐ Save invoice to DB
         print("💾 Step 3: Saving invoice to database...")
         invoice, created = OceanInvoice.objects.get_or_create(
             order=order,
             defaults={
-                 "user": user,
-                 "payment":payment,
-                 "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
-                 "issue_date": timezone.now(),
-                 "due_date": timezone.now() + timedelta(days=7),
-                 "pdf_url": pdf_url,
+                "user": user,
+                "payment": payment,
+                "invoice_number": f"INV-{user.id}-{int(timezone.now().timestamp())}",
+                "issue_date": timezone.now(),
+                "due_date": timezone.now() + timedelta(days=7),
+                "pdf_url": pdf_url,
             }
-        
         )
         print(f"✅ Invoice {'created' if created else 'already exists'}: {invoice.invoice_number}")
 
-      # ⭐ Send email only once
-        if created and final_recipient_email:
-            print(f"DEBUG: Attempting to send invoice to email:  {final_recipient_email} (User ID: {user.id})") 
-            email = EmailMessage(
-                 subject=f"Invoice for Order {order.order_id}",
-                 body=(
-                     f"Hello {user.first_name or user.username},\n\n"
-                     f"Thank you for your purchase! Attached is your invoice.\n\n"
-                     f"Regards,\nOceanCart 🌊"
-                 ),
-                 from_email=settings.EMAIL_HOST_USER,
-                 to=[final_recipient_email], 
+        # ⭐ SEND EMAIL VIA SENDGRID ⭐
+        try:
+            print(f"DEBUG: Sending invoice via SendGrid to {final_recipient_email}")
+
+            # Prepare PDF attachment (base64)
+            encoded_pdf = base64.b64encode(pdf_bytes).decode()
+            attachment = Attachment(
+                FileContent(encoded_pdf),
+                FileName(f"invoice_{order.order_id}.pdf"),
+                FileType("application/pdf"),
+                Disposition("attachment")
             )
-            email.attach(f"invoice_{order.order_id}.pdf", pdf_bytes, "application/pdf")
-        
-            try:
-               email.send(fail_silently=True) # temporary made true for testing , that skips error
-               print(" Invoice email sent successfully.")
-            except Exception as e:
-               print(f"❌ Error sending invoice email to {final_recipient_email}: {e}")
+
+            # Compose message
+            message = Mail(
+                from_email=os.environ.get("FROM_EMAIL"),
+                to_emails=final_recipient_email,
+                subject=f"Invoice for Order {order.order_id}",
+                html_content=f"""
+                    <p>Hello {user.first_name or user.username},</p>
+                    <p>Thank you for your purchase! Your invoice is attached below.</p>
+                    <p><strong>Order ID:</strong> {order.order_id}</p>
+                    <p><strong>Invoice Number:</strong> {invoice.invoice_number}</p>
+                    <p>Warm Regards,<br>OceanCart Team 🌊</p>
+                """
+            )
+
+            # Attach PDF
+            message.attachment = attachment
+
+            # Send via SendGrid
+            sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
+            response = sg.send(message)
+            print("📤 SendGrid Email Sent:", response.status_code)
+
+        except Exception as e:
+            print(f"❌ SendGrid Error sending invoice to {final_recipient_email}: {e}")
+
         print("✅ save_and_email_invoice completed successfully")
         return invoice
+
     except Exception as e:
         print(f"❌ Error in save_and_email_invoice: {e}")
-        print(f"Error type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         raise
