@@ -12,7 +12,7 @@ import "./index.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId="814347402171-qjrami4vbk4lu29tm1n490ank0apn35e.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <OceanAuthProvider>
         <CartProvider>
           <App />
