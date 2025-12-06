@@ -4,18 +4,10 @@ services:
     env: python
     plan: free
 
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn ocean_backend.wsgi:application"
+    buildCommand: "pip install -r ocean_backend/requirements.txt"
+    startCommand: "cd ocean_backend && gunicorn ocean_backend.wsgi:application --workers 1 --timeout 120"
 
     envVars:
-      DJANGO_SETTINGS_MODULE: "ocean_backend.settings"
+      DJANGO_SETTINGS_MODULE: "ocean_backend.ocean_backend.settings"
       PYTHON_VERSION: "3.10"
-
-    disks:
-      - name: media
-        mountPath: /opt/render/project/src/media
-        sizeGB: 1
-
-      - name: database
-        mountPath: /opt/render/project/src/ocean_backend/database
-        sizeGB: 1
+      # DATABASE_URL will be injected from Render PostgreSQL automatically
