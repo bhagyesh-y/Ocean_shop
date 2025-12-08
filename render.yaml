@@ -5,8 +5,8 @@ services:
     plan: free
 
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "cd ocean_backend && python manage.py migrate sites && python manage.py migrate socialaccount && python manage.py migrate && gunicorn ocean_backend.wsgi:application --workers 1 --timeout 120"
+    startCommand: "cd ocean_backend && gunicorn ocean_backend.wsgi:application --workers 1 --timeout 120"
 
     envVars:
-      DJANGO_SETTINGS_MODULE: "ocean_backend.ocean_backend.settings"
+      DJANGO_SETTINGS_MODULE: "ocean_backend.settings"
       PYTHON_VERSION: "3.10"
