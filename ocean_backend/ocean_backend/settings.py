@@ -60,8 +60,11 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    'django.contrib.sites',
     "pacific_payments",
     'django_extensions',
+    'cloudinary_storage',
+    'storages', 
 ]
 
 MIDDLEWARE = [
@@ -211,3 +214,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = "/media/"
+# --- CLOUDINARY CONFIGURATION FOR IMAGE UPLOADS ---
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
+    'MEDIA_FOLDER': 'ocean_shop_media', 
+}
+
+# Required for django.contrib.sites
+SITE_ID = 1

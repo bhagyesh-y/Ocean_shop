@@ -1,11 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User # Importing User model 
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class Product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(
+        upload_to='product_images/', 
+        storage=MediaCloudinaryStorage() # <-- 2. ADD THE STORAGE ARGUMENT
+    )
     category = models.CharField(max_length=100, blank=True)
     stock = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
