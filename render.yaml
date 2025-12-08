@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
 
-    buildCommand: "pip install -r ocean_backend/requirements.txt"
+    buildCommand: "pip install -r ocean_backend/requirements.txt && python manage.py migrate sites --fake"
     startCommand: "cd ocean_backend && gunicorn ocean_backend.wsgi:application --workers 1 --timeout 120"
 
     envVars:
