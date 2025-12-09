@@ -84,16 +84,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  
     "http://127.0.0.1:5173",
     "https://ocean-shop-r4s4.onrender.com",
+    "https://ocean-shop-one.vercel.app"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://ocean-shop-r4s4.onrender.com",
+    "https://ocean-shop-one.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True 
 CORS_ALLOW_ALL_HEADERS = True
+
+CORS_EXPOSE_HEADERS = ["Content-Type", "Authorization"]
+
 
 CORS_ALLOW_HEADERS = [
     'accept',
