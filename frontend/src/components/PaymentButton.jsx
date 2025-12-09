@@ -50,7 +50,6 @@ const PaymentButton = ({ totalAmount, user }) => {
                         })
 
                     });
-                    console.log("Sending key_id:", key_id)
 
                     const verifyData = await verify.json();
 

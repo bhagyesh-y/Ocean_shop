@@ -43,7 +43,7 @@ export const OceanAuthProvider = ({ children }) => {
                 password2: confirmPassword,
             });
 
-            console.log("Registration successful:", response.data);
+            // console.log("Registration successful:", response.data);
             return await oceanLogin(username, password);
 
         } catch (err) {
@@ -63,8 +63,9 @@ export const OceanAuthProvider = ({ children }) => {
             localStorage.setItem("oceanUser", JSON.stringify(response.data));
 
         } catch (err) {
-            console.error("Fetching profile failed:", err);
+            // console.error("Fetching profile failed:", err);
             logoutUser();
+
         }
     };
 

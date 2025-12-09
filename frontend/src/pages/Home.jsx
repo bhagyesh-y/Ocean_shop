@@ -2,34 +2,36 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CartContext } from "../context/Cartcontext.jsx";
 import { fetchProducts } from "../api/OceanAPI.js";
+import { toast } from "react-toastify";
 
 const Home = () => {
-    const [atlanticFade, setAtlanticFade] = useState(false);// for fade in effect 
-    const [oceanProducts, setOceanProducts] = useState([]); //  products from backend
-    const { addToCart } = useContext(CartContext) //cart context
-    const [loading, setLoading] = useState(true);// for loading 
-    const [error, setError] = useState(null) // for error handling 
+    const [atlanticFade, setAtlanticFade] = useState(false);
+    const [oceanProducts, setOceanProducts] = useState([]);
+    const { addToCart } = useContext(CartContext);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+    // Fade in effect
     useEffect(() => {
-        setTimeout(() => setAtlanticFade(true), 150); // soft fade-in
+        setTimeout(() => setAtlanticFade(true), 150);
     }, []);
 
+    // Fetch products
     useEffect(() => {
         const getProducts = async () => {
             try {
                 const data = await fetchProducts();
                 setOceanProducts(data);
-            }
-            catch (err) {
-                toast.error("Error while fetching products");
-                setError("failed to load products from server");
+            } catch (err) {
+                toast.error("Error while fetching products ❌");
+                setError("Failed to load products from server");
             } finally {
                 setLoading(false);
             }
         };
-        getProducts();
-    }, [])
 
+        getProducts();
+    }, []);
 
     return (
         <div
@@ -52,6 +54,7 @@ const Home = () => {
                 <p className="lead mt-3">
                     Dive into deals from every corner of the world 🌍
                 </p>
+
                 <Link
                     to="/products"
                     className="btn btn-light btn-lg mt-3 fw-semibold pacificWaveBtn"
@@ -60,14 +63,14 @@ const Home = () => {
                 </Link>
             </div>
 
-            {/* 🌊 Featured Products Section */}
+            {/* 🌊 Featured Products */}
             <div
                 className="container mt-5 position-relative"
                 style={{
                     background: "linear-gradient(180deg, #caf0f8 0%, #ade8f4 100%)",
                     borderRadius: "25px",
                     padding: "3rem 2rem",
-                    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
                     overflow: "hidden",
                 }}
             >
@@ -81,54 +84,76 @@ const Home = () => {
                             className="col-md-4 mb-4"
                             key={product.id}
                             style={{
-                                transition: "transform 0.4s ease, box-shadow 0.4s ease",
-                                animation: `floatWave ${3 + index * 0.3}s ease-in-out infinite alternate`,
+                                animation: `floatWave ${3 + index * 0.3
+                                    }s ease-in-out infinite alternate`,
                             }}
                         >
                             <div
-                                className="card h-100 shadow-sm border-0 pacificCard"
+                                className="product-card shadow-sm"
                                 style={{
                                     borderRadius: "20px",
-                                    overflow: "hidden",
                                     background: "white",
-                                    transition: "all 0.3s ease",
                                     cursor: "pointer",
-                                    height: "220px"
+                                    transition: "all 0.3s ease",
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = "translateY(-8px)";
+                                    e.currentTarget.style.transform =
+                                        "translateY(-8px)";
                                     e.currentTarget.style.boxShadow =
-                                        "0 10px 25px rgba(0, 123, 255, 0.25)";
+                                        "0 12px 26px rgba(0, 123, 255, 0.28)";
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = "translateY(0)";
+                                    e.currentTarget.style.transform =
+                                        "translateY(0)";
                                     e.currentTarget.style.boxShadow = "none";
                                 }}
                             >
-                                <img
-                                    src={product.image}
-                                    className="card-img-top"
-                                    alt={product.name}
+                                {/* 🔵 Product Image */}
+                                <div
+                                    className="product-image"
                                     style={{
-                                        height: "220px",
-                                        objectFit: "cover",
-                                        transition: "transform 0.5s ease",
+                                        overflow: "hidden",
+                                        borderTopLeftRadius: "20px",
+                                        borderTopRightRadius: "20px",
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.transform = "scale(1.08)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.transform = "scale(1)")
-                                    }
-                                />
-                                <div className="card-body text-center">
-                                    <h5 className="card-title fw-semibold text-primary">
+                                >
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        style={{
+                                            width: "100%",
+                                            height: "230px",
+                                            objectFit: "cover",
+                                            transition: "transform 0.4s ease",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                        (e.currentTarget.style.transform =
+                                            "scale(1.06)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                        (e.currentTarget.style.transform =
+                                            "scale(1)")
+                                        }
+                                    />
+                                </div>
+
+                                {/* 🌊 Product Body */}
+                                <div
+                                    className="product-body text-center"
+                                    style={{ padding: "15px" }}
+                                >
+                                    <h5 className="fw-semibold text-primary">
                                         {product.name}
                                     </h5>
-                                    <p className="text-muted">{product.description}</p>
+
+                                    <p className="text-muted" style={{ minHeight: "40px" }}>
+                                        {product.description}
+                                    </p>
+
                                     <p className="fw-bold text-success">
                                         ₹{product.price}
                                     </p>
+
                                     <Link to={`/product/${product.id}`}>
                                         <button className="btn btn-outline-primary rounded-pill px-4">
                                             View Details
@@ -140,7 +165,7 @@ const Home = () => {
                     ))}
                 </div>
 
-                {/* 🌊 Animations */}
+                {/* 🌊 Animations + Button CSS */}
                 <style>
                     {`
                         @keyframes floatWave {
@@ -161,6 +186,18 @@ const Home = () => {
                             color: white;
                             transform: translateY(-3px);
                             box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
+                        }
+
+                        .product-card {
+                            border-radius: 20px;
+                            overflow: hidden;
+                        }
+
+                        .product-image img {
+                            width: 100%;
+                            height: 230px;
+                            object-fit: cover;
+                            display: block;
                         }
                     `}
                 </style>

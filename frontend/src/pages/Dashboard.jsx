@@ -19,7 +19,7 @@ const Dashboard = () => {
     };
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150)
-    })
+    }, []);
     //  Fetch recent paid orders
     useEffect(() => {
         const fetchRecentOrders = async () => {
@@ -42,7 +42,7 @@ const Dashboard = () => {
                 const data = await res.json();
                 setRecentOrders(data);
             } catch (err) {
-                console.error("Error fetching recent orders:", err);
+                // console.error("Error fetching recent orders:", err);
                 toast.error("Could not load recent orders");
             } finally {
                 setLoadingOrders(false);

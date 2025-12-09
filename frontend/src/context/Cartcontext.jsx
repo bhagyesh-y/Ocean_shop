@@ -62,7 +62,7 @@ export const CartProvider = ({ children }) => {
             });
 
             setCart([]);
-            console.log("Cart cleared (backend + frontend)");
+            // console.log("Cart cleared (backend + frontend)");
         } catch (error) {
             console.error("Error clearing cart:", error);
         }

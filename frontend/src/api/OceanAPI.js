@@ -13,7 +13,7 @@ export const fetchProducts = async () => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    return response.data; // NO EXTRA IMAGE FIX NEEDED
+    return response.data;
   } catch (error) {
     console.error("failed to load products:", error);
     throw error;

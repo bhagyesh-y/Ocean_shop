@@ -96,7 +96,7 @@ const Cart = () => {
                 return;
             }
 
-            console.log("🔵 FRONTEND KEY BEFORE OPENING RAZORPAY:", data.key);
+            // console.log("🔵 FRONTEND KEY BEFORE OPENING RAZORPAY:", data.key);
             const options = {
                 key: data.key,
                 amount: data.amount * 100,

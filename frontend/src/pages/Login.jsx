@@ -48,9 +48,7 @@ const Login = () => {
       if (!res.ok) throw new Error("Google login failed 🌊");
 
       const data = await res.json();
-      if (import.meta.env.MODE === "development") {
-        console.log("✅ Google login success:", data);// once project is ready to deploy , have to remove console statements 
-      }
+
 
       // Save JWT tokens localstorage but i have to change it to cookie or memory 
       localStorage.setItem("oceanTokens", JSON.stringify(data));
@@ -70,9 +68,7 @@ const Login = () => {
           picture: data.user.picture,
         }
         localStorage.setItem("oceanUser", JSON.stringify(mergedUser));
-        if (import.meta.env.MODE === "development") { // before deploying remove the console or change the mode
-          console.log("🌊 User profile:", mergedUser);
-        }
+
         // update context
         oceanSetGoogleLogin(data, mergedUser);
         toast.success(`Welcome back, ${mergedUser.username}!`, { theme: "colored" });
@@ -82,7 +78,6 @@ const Login = () => {
       }
 
     } catch (error) {
-      console.error("❌ Google login error:", error);
       toast.error("Google login failed. Please try again!", { theme: "colored" });
     }
   };

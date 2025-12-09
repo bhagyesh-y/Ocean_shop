@@ -61,7 +61,6 @@ const PaymentHistory = () => {
                 const data = await response.json();
                 setPayments(data);
             } catch (error) {
-                console.error("Error loading payments:", error);
                 toast.error("Failed to load payment history", { theme: "colored" });
             } finally {
                 setLoading(false);
@@ -85,7 +84,7 @@ const PaymentHistory = () => {
                 const data = await res.json();
                 setAnalytics(data);
             } catch (err) {
-                console.error("Analytics load error:", err);
+                toast.error("Failed to Load Analytics", { theme: "colored" });
             }
         };
 

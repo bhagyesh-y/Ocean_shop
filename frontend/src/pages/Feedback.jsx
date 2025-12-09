@@ -18,13 +18,13 @@ const Feedback = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        emailjs
-            .send(
-                "service_gwk09xj",
-                "template_vah1asa",
-                formData,
-                "KoHt-tm8TuPNI2e6x"
-            )
+        emailjs.send(
+            import.meta.env.VITE_EMAILJS_SERVICE_ID,
+            import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+            formData,
+            import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        )
+
             .then(
                 () => {
                     toast.success("Feedback sent successfully 🌊", { theme: "colored" });
@@ -32,7 +32,7 @@ const Feedback = () => {
                 },
                 (error) => {
                     toast.error("Failed to send feedback 😕", { theme: "colored" });
-                    console.error(error);
+                    // console.error(error);
                 }
             );
     };
