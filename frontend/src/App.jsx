@@ -12,7 +12,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 // Scroll To Top Component
-import ScrollToTop from "./components/Scrolltotop";
+import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
 
 // Page Components
