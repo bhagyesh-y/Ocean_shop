@@ -78,7 +78,7 @@ const Home = () => {
                     Featured Products 🌴
                 </h2>
 
-                <div className="row">
+                <div className="row home-featured-row">
                     {oceanProducts.slice(0, 6).map((product, index) => (
                         <div
                             className="col-md-4 mb-4"

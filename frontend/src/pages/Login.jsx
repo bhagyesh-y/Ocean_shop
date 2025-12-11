@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, use } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
@@ -12,6 +12,7 @@ const Login = () => {
   const [tideForm, setTideForm] = useState({ username: "", password: "" }); // form state
   const [waveError, setWaveError] = useState("");
   const [atlanticFade, setAtlanticFade] = useState(false);
+  const [loadingWave, setloadingWave] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setAtlanticFade(true), 150);
@@ -24,6 +25,7 @@ const Login = () => {
   // 🌊 Normal username/password login
   const handleWaveSubmit = async (e) => {
     e.preventDefault(); // for preventing default behaviour of refresh 
+    setloadingWave(true);
     const success = await oceanLogin(tideForm.username, tideForm.password);
     if (success) {
       toast.success(`🌊 Login successful! Welcome ${tideForm.username}`, { theme: "colored" });
@@ -32,6 +34,7 @@ const Login = () => {
       setWaveError("Login failed. Please check your credentials 🌊");
       toast.error("❌ Invalid username or password", { theme: "colored" });
     }
+    setloadingWave(false);
   };
 
   // Login with google
@@ -138,23 +141,41 @@ const Login = () => {
 
           <button
             type="submit"
-            className="btn w-100 fw-semibold"
+            disabled={loadingWave}
+            className="btn w-100 fw-semibold d-flex justify-content-center align-items-center gap-2"
             style={{
-              backgroundColor: "#023e8a",
+              backgroundColor: loadingWave ? "#0a3d86" : "#023e8a",
               border: "none",
               color: "white",
               transition: "all 0.3s ease",
+              opacity: loadingWave ? 0.7 : 1,
+              cursor: loadingWave ? "not-allowed" : "pointer",
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#03045e";
-              e.target.style.transform = "scale(1.03)";
+              if (!loadingWave) {
+                e.target.style.backgroundColor = "#03045e";
+                e.target.style.transform = "scale(1.03)";
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#023e8a";
-              e.target.style.transform = "scale(1)";
+              if (!loadingWave) {
+                e.target.style.backgroundColor = "#023e8a";
+                e.target.style.transform = "scale(1)";
+              }
             }}
           >
-            🌍 Login
+            {loadingWave ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Logging in...
+              </>
+            ) : (
+              "🌍 Login"
+            )}
           </button>
 
           <div className="text-center mt-3">

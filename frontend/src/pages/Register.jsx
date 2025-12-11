@@ -6,6 +6,7 @@ const Register = () => {
     const { oceanRegister } = useContext(OceanAuthContext);// destructuring the context values
     const navigate = useNavigate();
 
+
     const [pacificForm, setPacificForm] = useState({
         username: "",
         email: "",
@@ -16,6 +17,7 @@ const Register = () => {
     const [atlanticFade, setAtlanticFade] = useState(false);
     const [errorWave, setErrorWave] = useState("");
     const [successWave, setSuccessWave] = useState("");
+    const [loadingWave, setLoadingWave] = useState(false);
 
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150);
@@ -25,6 +27,8 @@ const Register = () => {
         setPacificForm({ ...pacificForm, [e.target.name]: e.target.value });
         setErrorWave("");
         setSuccessWave("");
+        setLoadingWave(false);
+
     };
 
     const handleWaveSubmit = async (e) => {
@@ -34,6 +38,7 @@ const Register = () => {
             setErrorWave("Passwords did't match ⚠️");
             return;
         }
+        setLoadingWave(true);
 
         const success = await oceanRegister(
             pacificForm.username,
@@ -47,6 +52,7 @@ const Register = () => {
             setTimeout(() => navigate("/"), 1500);
         } else {
             setErrorWave("Registration failed. Please try again 🌀");
+            setLoadingWave(false);
         }
     };
 
@@ -138,22 +144,30 @@ const Register = () => {
                     <button
                         type="submit"
                         className="btn w-100 fw-semibold"
+                        disabled={loadingWave}
                         style={{
-                            backgroundColor: "#023e8a",
+                            backgroundColor: loadingWave ? "#012a57" : "#023e8a",
                             border: "none",
                             color: "white",
                             transition: "all 0.3s ease",
+                            opacity: loadingWave ? 0.7 : 1,
+                            cursor: loadingWave ? "not-allowed" : "pointer",
                         }}
                         onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#03045e";
-                            e.target.style.transform = "scale(1.03)";
+                            if (!loadingWave) {
+                                e.target.style.backgroundColor = "#03045e";
+                                e.target.style.transform = "scale(1.03)";
+                            }
                         }}
                         onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "#023e8a";
-                            e.target.style.transform = "scale(1)";
+                            if (!loadingWave) {
+                                e.target.style.backgroundColor = "#023e8a";
+                                e.target.style.transform = "scale(1)";
+                            }
                         }}
                     >
-                        🌍 Register
+                        {loadingWave ? "Registering..." : "🌍 Register"}
+
                     </button>
                 </form>
 
