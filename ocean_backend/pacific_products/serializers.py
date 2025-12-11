@@ -22,6 +22,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class OceanCartSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     total_price = serializers.SerializerMethodField()
+    quantity=serializers.IntegerField(default=1)
     created_at = serializers.DateTimeField(source='added_on',read_only=True)
     product_id = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(), source='product', write_only=True

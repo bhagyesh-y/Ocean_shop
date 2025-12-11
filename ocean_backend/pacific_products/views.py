@@ -36,9 +36,20 @@ class OceanCartListCreateView(generics.ListCreateAPIView):
         return OceanCart.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # Automatically assign user when adding item
-        serializer.save(user=self.request.user)
-        
+        user = self.request.user
+        product = serializer.validated_data.get("product")
+        quantity = serializer.validated_data.get("quantity", 1)
+
+    # Check if item is already in cart
+        existing_item = OceanCart.objects.filter(user=user, product=product).first()
+
+        if existing_item:
+            existing_item.quantity += quantity
+            existing_item.save()
+        else:
+            serializer.save(user=user)
+
+         
     def get_serializer_context(self):
         return {"request":self.request}
     

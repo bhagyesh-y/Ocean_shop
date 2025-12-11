@@ -204,8 +204,8 @@ const Cart = () => {
                 }}
             >
                 <h2 className="text-center mb-4 text-white fw-bold">Your Cart 🛍️</h2>
-
-                <div className="table-responsive shadow-sm rounded-4 overflow-hidden">
+                {/* DESKTOP TABLE */}
+                <div className="table-responsive shadow-sm rounded-4 overflow-hidden cart-table">
                     <table className="table table-bordered align-middle text-center bg-white mb-4">
                         <thead className="table-info">
                             <tr>
@@ -235,19 +235,11 @@ const Cart = () => {
                                     <td>{item.product?.name || item.name}</td>
                                     <td>₹{item.product?.price || item.price}</td>
                                     <td>{item.quantity}</td>
-                                    <td>
-                                        ₹
-                                        {(
-                                            (parseFloat(item.product?.price || item.price || 0) *
-                                                item.quantity) || 0
-                                        ).toFixed(2)}
-                                    </td>
+                                    <td>₹{((parseFloat(item.product?.price || item.price) * item.quantity)).toFixed(2)}</td>
                                     <td>
                                         <button
                                             className="btn btn-danger btn-sm"
-                                            onClick={() =>
-                                                handleRemove(item.id, item.product?.name || item.name)
-                                            }
+                                            onClick={() => handleRemove(item.id, item.product?.name || item.name)}
                                         >
                                             Remove
                                         </button>
@@ -257,6 +249,40 @@ const Cart = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* MOBILE CARD VIEW */}
+                <div className="cart-mobile-card">
+                    {cart.map((item) => (
+                        <div key={item.id} className="cart-mobile-item">
+                            <div className="cart-mobile-row">
+                                <img
+                                    src={item.product?.image || item.image}
+                                    alt={item.product?.name || item.name}
+                                />
+
+                                <div className="cart-mobile-info">
+                                    <h6 className="fw-bold">{item.product?.name || item.name}</h6>
+                                    <p className="text-success fw-bold mb-1">₹{item.product?.price || item.price}</p>
+                                    <p className="mb-1">Qty: {item.quantity}</p>
+                                    <p className="fw-bold">
+                                        Subtotal: ₹
+                                        {((parseFloat(item.product?.price || item.price) * item.quantity)).toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="cart-mobile-actions">
+                                <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => handleRemove(item.id, item.product?.name || item.name)}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
 
                 <div className="d-flex justify-content-between align-items-center mt-4 px-2">
                     <h4 className="text-white fw-bold">Total: ₹{totalPrice}</h4>
