@@ -4,6 +4,11 @@ from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 load_dotenv()
 import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+
 #GOOGLE AUTH KEYS
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 #RAZORPAY KEYS
@@ -215,10 +220,10 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = "/media/"
+
 # --- CLOUDINARY CONFIGURATION FOR IMAGE UPLOADS ---
 CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
@@ -230,6 +235,7 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': CLOUDINARY_API_SECRET,
     'MEDIA_FOLDER': 'ocean_shop_media', 
 }
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # Required for django.contrib.sites
 SITE_ID = 1
