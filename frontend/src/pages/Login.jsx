@@ -71,10 +71,11 @@ const Login = () => {
           picture: data.user.picture,
         }
         localStorage.setItem("oceanUser", JSON.stringify(mergedUser));
+        const displayName = mergedUser.full_name || mergedUser.username || "User";
+        toast.success(` 🌊 Welcome onboard ${displayName}! `, { theme: "colored" });
 
         // update context
         oceanSetGoogleLogin(data, mergedUser);
-        toast.success(`Welcome back, ${mergedUser.username}!`, { theme: "colored" });
 
         // Give AuthContext time to update before redirect
         setTimeout(() => navigate("/"), 400);
@@ -91,16 +92,14 @@ const Login = () => {
   };
 
   return (
-    <div
-      className="container-fluid d-flex justify-content-center align-items-center vh-100"
-      style={{ background: "linear-gradient(135deg, #0077b6, #90e0ef)" }}
-    >
+    <div className="ocean-login-bg d-flex justify-content-center align-items-center py-5">
+
       <div
         className={`card shadow-lg p-4 border-0 ${atlanticFade ? "opacity-100" : "opacity-0"
           }`}
         style={{
           maxWidth: "420px",
-          width: "100%",
+          width: "93%",
           borderRadius: "15px",
           background: "rgba(255, 255, 255, 0.9)",
           transition: "opacity 1s ease, transform 0.5s ease",

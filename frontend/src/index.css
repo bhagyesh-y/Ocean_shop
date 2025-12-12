@@ -274,3 +274,73 @@ footer {
   margin-top: 10px;
   width: 100%;
 }
+/* styling for login page with animated waves  */
+/* 🌊 Fullscreen animated ocean background */
+.ocean-login-bg {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 80px;
+  background: linear-gradient(180deg, #0077b6, #0096c7, #48cae4);
+  overflow: hidden;
+}
+
+/* 🌊 Wave Layer 1 (foreground light wave) */
+.ocean-login-bg::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 160px;
+  background-repeat: repeat-x;
+  background-size: contain;
+  opacity: 0.45;
+  animation: oceanWave1 18s linear infinite;
+
+  background-image: url("data:image/svg+xml,%3Csvg width='1440' height='320' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%2300b4d8' d='M0,224L60,229.3C120,235,240,245,360,256C480,267,600,277,720,277.3C840,277,960,267,1080,250.7C1200,235,1320,213,1380,202.7L1440,192V320H0Z'/%3E%3C/svg%3E");
+}
+
+/* 🌊 Wave Layer 2 (background darker wave) */
+.ocean-login-bg::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 180px;
+  background-repeat: repeat-x;
+  background-size: contain;
+  opacity: 0.35;
+  animation: oceanWave2 28s linear infinite;
+
+  background-image: url("data:image/svg+xml,%3Csvg width='1440' height='320' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%2300487a' d='M0,192L40,202.7C80,213,160,235,240,224C320,213,400,171,480,149.3C560,128,640,128,720,144C800,160,880,192,960,202.7C1040,213,1120,203,1200,170.7C1280,139,1360,85,1400,58.7L1440,32V320H0Z'/%3E%3C/svg%3E");
+}
+
+/* 🌊 Animations */
+@keyframes oceanWave1 {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes oceanWave2 {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-40%);
+  }
+}
+
+/* 📱 Responsive curve adjustments */
+@media (max-width: 600px) {
+  .ocean-login-bg::before,
+  .ocean-login-bg::after {
+    height: 120px;
+  }
+}
