@@ -50,7 +50,7 @@ const Home = () => {
                     background: "linear-gradient(135deg, #0077b6, #00b4d8)",
                 }}
             >
-                <h1 className="display-3 fw-bold">Welcome to Cartify 🛒</h1>
+                <h1 className="display-3 fw-bold">Welcome to Ocean Shop 🛒</h1>
                 <p className="lead mt-3">
                     Dive into deals from every corner of the world 🌍
                 </p>

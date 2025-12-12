@@ -166,7 +166,7 @@ const PacificNavbar = () => {
                 >
                     <div className="reefHeader d-flex align-items-center justify-content-between px-3 py-2">
                         <div className="text-light fw-bold d-flex align-items-center">
-                            <FaShoppingCart className="me-2" /> Cartify
+                            <FaShoppingCart className="me-2" /> Ocean Shop
                         </div>
                         <button
                             className="btn reefClose"
