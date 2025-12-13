@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
-
 const Register = () => {
     const { oceanRegister } = useContext(OceanAuthContext);// destructuring the context values
     const navigate = useNavigate();
@@ -57,12 +56,18 @@ const Register = () => {
     };
 
     return (
+
         <div
-            className="container-fluid d-flex justify-content-center align-items-center vh-100"
+            className="container-fluid ocean-login-bg d-flex justify-content-center align-items-center vh-100"
             style={{
                 background: "linear-gradient(135deg, #0077b6, #90e0ef)",
             }}
         >
+            <div className="top-wave"></div>
+            <div className="ocean-login-topwave-1"></div>
+            <div className="ocean-login-topwave-2"></div>
+
+
             <div
                 className={`card shadow-lg p-4 border-0 ${atlanticFade ? "opacity-100" : "opacity-0"
                     }`}
@@ -183,7 +188,9 @@ const Register = () => {
                     </small>
                 </div>
             </div>
+
         </div>
+
     );
 };
 

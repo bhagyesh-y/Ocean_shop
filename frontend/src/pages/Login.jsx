@@ -4,6 +4,8 @@ import { OceanAuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
 import.meta.env
+
+
 // bcz vite exposes env variables via import.meta.env 
 
 const Login = () => {
@@ -93,9 +95,13 @@ const Login = () => {
 
   return (
     <div className="ocean-login-bg d-flex justify-content-center align-items-center py-5">
+      <div className="top-wave"></div>
+      <div className="ocean-login-topwave-1"></div>
+      <div className="ocean-login-topwave-2"></div>
+
 
       <div
-        className={`card shadow-lg p-4 border-0 ${atlanticFade ? "opacity-100" : "opacity-0"
+        className={`card shadow-lg p-4 border-0  ${atlanticFade ? "opacity-100" : "opacity-0"
           }`}
         style={{
           maxWidth: "420px",
@@ -192,6 +198,7 @@ const Login = () => {
         </div>
       </div>
     </div>
+
   );
 };
 

@@ -42,6 +42,8 @@ const AppRoutes = () => {
         {/* Redirect any other route to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+
+
     );
   }
 
