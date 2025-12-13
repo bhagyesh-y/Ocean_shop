@@ -104,7 +104,7 @@ const Footer = () => {
                 {/* 🧾 Bottom Line */}
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-center py-3 text-light opacity-75 small">
                     <p className="mb-2 mb-md-0">
-                        © {new Date().getFullYear()} <strong>Cartify</strong>. All rights reserved.
+                        © {new Date().getFullYear()} <strong>Ocean Shop</strong>. All rights reserved.
                     </p>
                     <p className="mb-0">
                         Built with <span className="text-danger">❤️</span> in <span>🇮🇳</span>
