@@ -74,7 +74,7 @@ class GoogleLoginView(APIView):
             )
 
         try:
-            # ✅ Optimized token verification (NO extra Google calls)
+            #  Optimized token verification (NO extra Google calls)
             idinfo = id_token.verify_oauth2_token(
                 token,
                 requests.Request(),
@@ -85,7 +85,7 @@ class GoogleLoginView(APIView):
             name = idinfo.get("name", email.split("@")[0])
             picture = idinfo.get("picture", "")
 
-            # ✅ Avoid heavy operations
+            #  Avoid heavy operations
             user, _ = User.objects.get_or_create(
                 username=email,
                 defaults={
