@@ -1,20 +1,71 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 export const OceanAuthContext = createContext();
 
 export const OceanAuthProvider = ({ children }) => {
     const [oceanUser, setOceanUser] = useState(null);
-    const [oceanTokens, setOceanTokens] = useState(() =>
-        localStorage.getItem("oceanTokens")
-            ? JSON.parse(localStorage.getItem("oceanTokens"))
-            : null
-    );
+    const [oceanTokens, setOceanTokens] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
 
-    //  Using backend URL from Vite environment
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    // 🌊 LOGIN
+    const logoutUser = useCallback(() => {
+        setOceanUser(null);
+        setOceanTokens(null);
+        localStorage.removeItem("oceanUser");
+        localStorage.removeItem("oceanTokens");
+    }, []);
+
+    const fetchProfile = useCallback(
+        async (token) => {
+            const response = await axios.get(`${apiUrl}/api/profile/`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setOceanUser(response.data);
+            localStorage.setItem("oceanUser", JSON.stringify(response.data));
+        },
+        [apiUrl]
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const bootstrap = async () => {
+            const storedTokens = localStorage.getItem("oceanTokens");
+            if (!storedTokens) {
+                setOceanTokens(null);
+                setOceanUser(null);
+                if (!cancelled) setIsAuthReady(true);
+                return;
+            }
+
+            let parsed;
+            try {
+                parsed = JSON.parse(storedTokens);
+            } catch {
+                logoutUser();
+                if (!cancelled) setIsAuthReady(true);
+                return;
+            }
+
+            setOceanTokens(parsed);
+
+            try {
+                await fetchProfile(parsed.access);
+            } catch {
+                logoutUser();
+            } finally {
+                if (!cancelled) setIsAuthReady(true);
+            }
+        };
+
+        bootstrap();
+        return () => {
+            cancelled = true;
+        };
+    }, [fetchProfile, logoutUser]);
+
     const oceanLogin = async (username, password) => {
         try {
             const response = await axios.post(`${apiUrl}/api/token/`, {
@@ -33,43 +84,22 @@ export const OceanAuthProvider = ({ children }) => {
         }
     };
 
-    // 🌊 REGISTER
     const oceanRegister = async (username, email, password, confirmPassword) => {
         try {
-            const response = await axios.post(`${apiUrl}/api/register/`, {
+            await axios.post(`${apiUrl}/api/register/`, {
                 username,
                 email,
                 password,
                 password2: confirmPassword,
             });
 
-            // console.log("Registration successful:", response.data);
             return await oceanLogin(username, password);
-
         } catch (err) {
             console.error("Registration failed:", err.response?.data);
             return false;
         }
     };
 
-    // 🌊 PROFILE
-    const fetchProfile = async (token) => {
-        try {
-            const response = await axios.get(`${apiUrl}/api/profile/`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            setOceanUser(response.data);
-            localStorage.setItem("oceanUser", JSON.stringify(response.data));
-
-        } catch (err) {
-            // console.error("Fetching profile failed:", err);
-            logoutUser();
-
-        }
-    };
-
-    // 🌊 Google login helper
     const oceanSetGoogleLogin = (tokens, user) => {
         localStorage.setItem("oceanTokens", JSON.stringify(tokens));
         localStorage.setItem("oceanUser", JSON.stringify(user));
@@ -77,37 +107,12 @@ export const OceanAuthProvider = ({ children }) => {
         setOceanUser(user);
     };
 
-    // 🌊 LOGOUT
-    const logoutUser = () => {
-        setOceanUser(null);
-        setOceanTokens(null);
-        localStorage.removeItem("oceanUser");
-        localStorage.removeItem("oceanTokens");
-    };
-
-    // 🌊 Auto-load login (refresh persistence)
-    useEffect(() => {
-        const storedTokens = localStorage.getItem("oceanTokens");
-        const storedUser = localStorage.getItem("oceanUser");
-
-        if (storedTokens && storedUser) {
-            setOceanTokens(JSON.parse(storedTokens));
-            setOceanUser(JSON.parse(storedUser));
-            return;
-        }
-
-        if (storedTokens) {
-            const parsedTokens = JSON.parse(storedTokens);
-            setOceanTokens(parsedTokens);
-            fetchProfile(parsedTokens.access);
-        }
-    }, []);
-
     return (
         <OceanAuthContext.Provider
             value={{
                 oceanUser,
                 oceanTokens,
+                isAuthReady,
                 oceanLogin,
                 oceanRegister,
                 logoutUser,

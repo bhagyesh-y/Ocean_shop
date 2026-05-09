@@ -124,6 +124,37 @@ const PacificNavbar = () => {
                     ) : (
                         <>
                             <NavLink
+                                to="/"
+                                end
+                                className={({ isActive }) =>
+                                    isActive
+                                        ? "nav-link text-info fw-bold"
+                                        : "nav-link text-light"
+                                }
+                            >
+                                Home
+                            </NavLink>
+                            <NavLink
+                                to="/products"
+                                className={({ isActive }) =>
+                                    isActive
+                                        ? "nav-link text-info fw-bold"
+                                        : "nav-link text-light"
+                                }
+                            >
+                                Products
+                            </NavLink>
+                            <NavLink
+                                to="/about"
+                                className={({ isActive }) =>
+                                    isActive
+                                        ? "nav-link text-info fw-bold"
+                                        : "nav-link text-light"
+                                }
+                            >
+                                About
+                            </NavLink>
+                            <NavLink
                                 to="/login"
                                 className={({ isActive }) =>
                                     isActive
@@ -193,35 +224,43 @@ const PacificNavbar = () => {
                                     Feedback
                                 </NavLink>
                                 <NavLink to="/about" className="reefLink">
-                                    About</NavLink>
+                                    About
+                                </NavLink>
                                 <NavLink to="/payment-history" className="reefLink">
                                     Payment History
-                                    <NavLink
-                                        to="/cart"
-                                        className="btn btn-light w-100 mt-3 position-relative"
-                                    >
-                                        <FaShoppingCart className="me-1" />
-                                        {cart?.length > 0 && (
-                                            <span
-                                                className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                                style={{ fontSize: "0.7rem" }}
-                                            >
-                                                {cart.length}
-                                            </span>
-                                        )}
-                                    </NavLink>
-
-                                    {/* 🌊 Mobile Logout */}
-                                    <button
-                                        onClick={handleLogout}
-                                        className="btn btn-danger w-100 mt-3"
-                                    >
-                                        <FaSignOutAlt className="me-1" /> Logout
-                                    </button>
                                 </NavLink>
+                                <NavLink
+                                    to="/cart"
+                                    className="btn btn-light w-100 mt-3 position-relative"
+                                >
+                                    <FaShoppingCart className="me-1" />
+                                    {cart?.length > 0 && (
+                                        <span
+                                            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style={{ fontSize: "0.7rem" }}
+                                        >
+                                            {cart.length}
+                                        </span>
+                                    )}
+                                </NavLink>
+                                <button
+                                    onClick={handleLogout}
+                                    className="btn btn-danger w-100 mt-3"
+                                >
+                                    <FaSignOutAlt className="me-1" /> Logout
+                                </button>
                             </>
                         ) : (
                             <>
+                                <NavLink to="/" end className="reefLink">
+                                    Home
+                                </NavLink>
+                                <NavLink to="/products" className="reefLink">
+                                    Products
+                                </NavLink>
+                                <NavLink to="/about" className="reefLink">
+                                    About
+                                </NavLink>
                                 <NavLink to="/login" className="reefLink">
                                     Login
                                 </NavLink>

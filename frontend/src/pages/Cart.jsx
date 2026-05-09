@@ -68,10 +68,10 @@ const Cart = () => {
         try {
             setLoadingPayment(true); // 🌀 Start loader
 
-            const user = JSON.parse(localStorage.getItem("oceanUser"));
-            const user_id = user?.id;
+            const user = JSON.parse(localStorage.getItem("oceanUser") || "null");
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens") || "null");
 
-            if (!user_id) {
+            if (!user?.id || !tokens?.access) {
                 toast.error("Please log in before checkout.", { theme: "colored" });
                 setLoadingPayment(false);
                 return;
@@ -82,16 +82,20 @@ const Cart = () => {
             // Create order
             const response = await fetch(`${BASE_URL}/api/payments/create-order/`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${tokens.access}`,
+                },
                 body: JSON.stringify({
                     amount: amount,
-                    user_id: user_id,
                 }),
             });
 
             const data = await response.json();
-            if (!data.key || !data.order_id) {
-                toast.error("Payment setup failed. Try again!", { theme: "colored" });
+            if (!response.ok || !data.key || !data.order_id) {
+                toast.error(data.error || "Payment setup failed. Try again!", {
+                    theme: "colored",
+                });
                 setLoadingPayment(false);
                 return;
             }
@@ -114,13 +118,14 @@ const Cart = () => {
                             `${BASE_URL}/api/payments/verify-payment/`,
                             {
                                 method: "POST",
-                                headers: { "Content-Type": "application/json" },
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${tokens.access}`,
+                                },
                                 body: JSON.stringify({
                                     razorpay_order_id: response.razorpay_order_id,
                                     razorpay_payment_id: response.razorpay_payment_id,
                                     razorpay_signature: response.razorpay_signature,
-                                    user_id: user.id,
-                                    key: data.key
                                 }),
                             }
                         );
@@ -147,8 +152,7 @@ const Cart = () => {
                 },
                 prefill: {
                     name: user?.first_name || "Ocean User",
-                    email: user?.email || "test@example.com",
-                    contact: "9588459493",
+                    email: user?.email || "",
                 },
             };
 

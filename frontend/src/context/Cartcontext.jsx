@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+import { toast } from "react-toastify";
 
 export const CartContext = createContext();
 
@@ -10,8 +11,13 @@ export const CartProvider = ({ children }) => {
     // Add item to cart
     const addToCart = async (item) => {
         try {
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens") || "null");
             const accessToken = tokens?.access;
+
+            if (!accessToken) {
+                toast.info("Please log in to add items to your cart.", { theme: "colored" });
+                return;
+            }
 
             const response = await fetch(`${BASE_URL}/api/cart/`, {
                 method: "POST",

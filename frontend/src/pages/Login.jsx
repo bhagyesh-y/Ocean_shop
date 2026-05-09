@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useContext, use } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
-import.meta.env
-
-
-// bcz vite exposes env variables via import.meta.env 
 
 const Login = () => {
   const { oceanLogin, oceanSetGoogleLogin } = useContext(OceanAuthContext);//destructuring the context values

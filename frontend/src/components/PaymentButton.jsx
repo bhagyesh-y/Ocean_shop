@@ -17,20 +17,34 @@ const PaymentButton = ({ totalAmount, user }) => {
     const handlePayment = async () => {
         setLoading(true);
         try {
+            const tokens = JSON.parse(localStorage.getItem("oceanTokens") || "null");
+            if (!tokens?.access) {
+                toast.error("Please log in to pay.");
+                setLoading(false);
+                return;
+            }
+
             const res = await fetch(`${BASE_URL}/api/payments/create-order/`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${tokens.access}`,
+                },
                 body: JSON.stringify({
                     amount: totalAmount,
-                    user_id: user.id,
                 }),
             });
 
             const data = await res.json();
             setLoading(false);
 
+            if (!res.ok) {
+                toast.error(data.error || "Could not start payment.");
+                return;
+            }
+
             const options = {
-                key: RAZORPAY_KEY,
+                key: RAZORPAY_KEY || data.key,
                 amount: totalAmount * 100,
                 currency: "INR",
                 name: "Ocean Store 🌊",
@@ -40,15 +54,15 @@ const PaymentButton = ({ totalAmount, user }) => {
                 handler: async function (response) {
                     const verify = await fetch(`${BASE_URL}/api/payments/verify-payment/`, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${tokens.access}`,
+                        },
                         body: JSON.stringify({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
-                            user_id: user.id,
-                            key_id: RAZORPAY_KEY,
-                        })
-
+                        }),
                     });
 
                     const verifyData = await verify.json();
@@ -61,7 +75,7 @@ const PaymentButton = ({ totalAmount, user }) => {
                 },
                 prefill: {
                     name: user.first_name || "Guest",
-                    email: user.email,
+                    email: user.email || "",
                 },
                 theme: { color: "#0077b6" },
             };

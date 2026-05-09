@@ -3,19 +3,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Context Providers
 import { CartProvider } from "./context/Cartcontext";
 import { OceanAuthProvider, OceanAuthContext } from "./context/AuthContext";
+import OceanPrivateRoute from "./utils/OceanPrivateRoute";
 
-// Layout Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
-// Scroll To Top Component
 import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
 
-// Page Components
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
@@ -29,42 +25,73 @@ import CustomerService from "./pages/CustomerService";
 import QuickLinks from "./pages/QuickLinks";
 import PaymentHistory from "./pages/PaymentHistory";
 
-// main app routes component 
 const AppRoutes = () => {
-  const { oceanUser } = useContext(OceanAuthContext);
+  const { oceanUser, isAuthReady } = useContext(OceanAuthContext);
 
-  // If user is not logged in, restrict access
-  if (!oceanUser) {
+  if (!isAuthReady) {
     return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        {/* Redirect any other route to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-
-
+      <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading…</span>
+        </div>
+      </div>
     );
   }
 
-  // Logged-in user — full site access
   return (
     <>
       <Navbar />
       <main className="flex-fill">
         <Routes>
+          <Route
+            path="/login"
+            element={oceanUser ? <Navigate to="/" replace /> : <Login />}
+          />
+          <Route
+            path="/register"
+            element={oceanUser ? <Navigate to="/" replace /> : <Register />}
+          />
+
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Product />} />
           <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/feedback" element={<Feedback />} />
           <Route path="/about" element={<About />} />
           <Route path="/customer-service" element={<CustomerService />} />
           <Route path="/quick-links" element={<QuickLinks />} />
-          <Route path="/payment-history" element={<PaymentHistory />} />
 
-          {/* Redirect any other route to home */}
+          <Route
+            path="/cart"
+            element={
+              <OceanPrivateRoute>
+                <Cart />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <OceanPrivateRoute>
+                <Dashboard />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/feedback"
+            element={
+              <OceanPrivateRoute>
+                <Feedback />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/payment-history"
+            element={
+              <OceanPrivateRoute>
+                <PaymentHistory />
+              </OceanPrivateRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
