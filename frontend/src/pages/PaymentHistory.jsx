@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast, Bounce } from "react-toastify";
 import { motion } from "framer-motion";
-
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { api } from "../api/http";
 
 const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
@@ -40,26 +39,8 @@ const PaymentHistory = () => {
     useEffect(() => {
         const fetchPayments = async () => {
             try {
-                const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-                const accessToken = tokens?.access;
-
-                if (!accessToken) {
-                    toast.error("Please log in to view payment history", { theme: "colored" });
-                    setLoading(false);
-                    return;
-                }
-
-                const response = await fetch(`${BASE_URL}/api/payments/history/`, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!response.ok) throw new Error("Failed to load payment history");
-
-                const data = await response.json();
-                setPayments(data);
+                const response = await api.get("/api/payments/history/");
+                setPayments(response.data);
             } catch (error) {
                 toast.error("Failed to load payment history", { theme: "colored" });
             } finally {
@@ -74,15 +55,8 @@ const PaymentHistory = () => {
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
-                const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-                const access = tokens?.access;
-
-                const res = await fetch(`${BASE_URL}/api/payments/analytics/user/`, {
-                    headers: { Authorization: `Bearer ${access}` },
-                });
-
-                const data = await res.json();
-                setAnalytics(data);
+                const res = await api.get("/api/payments/analytics/user/");
+                setAnalytics(res.data);
             } catch (err) {
                 toast.error("Failed to Load Analytics", { theme: "colored" });
             }

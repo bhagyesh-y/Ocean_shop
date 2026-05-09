@@ -30,8 +30,8 @@ const PacificNavbar = () => {
         if (pacificOpen && reefRef.current) reefRef.current.focus();
     }, [pacificOpen]);
 
-    const handleLogout = () => {
-        logoutUser();
+    const handleLogout = async () => {
+        await logoutUser();
         navigate("/login");
     };
 

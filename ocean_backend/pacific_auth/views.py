@@ -7,8 +7,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import viewsets
 from django.conf import settings
+
+from .jwt_cookies import set_jwt_cookies
 
 #  user registration view
 class RegisterView(generics.CreateAPIView):
@@ -94,21 +95,16 @@ class GoogleLoginView(APIView):
                 }
             )
 
-            # ✅ Fast JWT generation
             refresh = RefreshToken.for_user(user)
+            access = str(refresh.access_token)
+            refresh_s = str(refresh)
 
-            return Response({
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-                "user": {
-                    "id": user.id,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "username": user.username,
-                    "email": user.email,
-                    "picture": picture,
-                }
-            })
+            profile = ProfileSerializer(user).data
+            profile["picture"] = picture
+
+            response = Response({"user": profile})
+            set_jwt_cookies(response, access, refresh_s)
+            return response
 
         except ValueError:
             return Response(

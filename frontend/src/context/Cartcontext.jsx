@@ -1,29 +1,26 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useContext } from "react";
 import { toast } from "react-toastify";
+import { apiUrl } from "../config";
+import { OceanAuthContext } from "./AuthContext";
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
+    const { oceanUser } = useContext(OceanAuthContext);
 
-    const BASE_URL = import.meta.env.VITE_API_URL;
-
-    // Add item to cart
     const addToCart = async (item) => {
         try {
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens") || "null");
-            const accessToken = tokens?.access;
-
-            if (!accessToken) {
+            if (!oceanUser) {
                 toast.info("Please log in to add items to your cart.", { theme: "colored" });
                 return;
             }
 
-            const response = await fetch(`${BASE_URL}/api/cart/`, {
+            const response = await fetch(apiUrl("/api/cart/"), {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({
                     product_id: item.id,
@@ -42,33 +39,26 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Remove item from cart (frontend only)
     const removeFromCart = (id) => {
         setCart((prevCart) => prevCart.filter((item) => item.id !== id));
     };
 
-    // Clear cart (backend + frontend)
     const clearCart = async () => {
         try {
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-            const accessToken = tokens?.access;
-
-            if (!accessToken) {
-                console.warn("No access token found");
+            if (!oceanUser) {
                 setCart([]);
                 return;
             }
 
-            await fetch(`${BASE_URL}/api/cart/clear/`, {
+            await fetch(apiUrl("/api/cart/clear/"), {
                 method: "DELETE",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${accessToken}`,
                 },
             });
 
             setCart([]);
-            // console.log("Cart cleared (backend + frontend)");
         } catch (error) {
             console.error("Error clearing cart:", error);
         }
@@ -83,7 +73,15 @@ export const CartProvider = ({ children }) => {
 
     return (
         <CartContext.Provider
-            value={{ cart, addToCart, removeFromCart, clearCart, totalPrice, cartCount, setCart }}
+            value={{
+                cart,
+                addToCart,
+                removeFromCart,
+                clearCart,
+                totalPrice,
+                cartCount,
+                setCart,
+            }}
         >
             {children}
         </CartContext.Provider>

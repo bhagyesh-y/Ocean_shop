@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { toast } from "react-toastify";
+import { apiUrl } from "../config";
+import { OceanAuthContext } from "../context/AuthContext";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
 const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 const PaymentButton = ({ totalAmount, user }) => {
     const [loading, setLoading] = useState(false);
+    const { oceanUser } = useContext(OceanAuthContext);
 
     useEffect(() => {
         const script = document.createElement("script");
@@ -17,18 +19,17 @@ const PaymentButton = ({ totalAmount, user }) => {
     const handlePayment = async () => {
         setLoading(true);
         try {
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens") || "null");
-            if (!tokens?.access) {
+            if (!oceanUser) {
                 toast.error("Please log in to pay.");
                 setLoading(false);
                 return;
             }
 
-            const res = await fetch(`${BASE_URL}/api/payments/create-order/`, {
+            const res = await fetch(apiUrl("/api/payments/create-order/"), {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${tokens.access}`,
                 },
                 body: JSON.stringify({
                     amount: totalAmount,
@@ -52,11 +53,11 @@ const PaymentButton = ({ totalAmount, user }) => {
                 order_id: data.order_id,
 
                 handler: async function (response) {
-                    const verify = await fetch(`${BASE_URL}/api/payments/verify-payment/`, {
+                    const verify = await fetch(apiUrl("/api/payments/verify-payment/"), {
                         method: "POST",
+                        credentials: "include",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${tokens.access}`,
                         },
                         body: JSON.stringify({
                             razorpay_order_id: response.razorpay_order_id,

@@ -143,6 +143,8 @@ def verify_payment(request):
         order.currency = "INR"
         order.save()
 
+        OceanCart.objects.filter(user=user).delete()
+
         payment_history = PaymentHistory.objects.create(
             user=user,
             order_id=order.order_id,

@@ -3,11 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
+import { apiUrl } from "../config";
 
 const Login = () => {
-  const { oceanLogin, oceanSetGoogleLogin } = useContext(OceanAuthContext);//destructuring the context values
-  const navigate = useNavigate(); // for navigation after login 
-  const [tideForm, setTideForm] = useState({ username: "", password: "" }); // form state
+  const { oceanLogin, oceanSetGoogleUser } = useContext(OceanAuthContext);
+  const navigate = useNavigate();
+  const [tideForm, setTideForm] = useState({ username: "", password: "" });
   const [waveError, setWaveError] = useState("");
   const [atlanticFade, setAtlanticFade] = useState(false);
   const [loadingWave, setloadingWave] = useState(false);
@@ -20,9 +21,8 @@ const Login = () => {
     setTideForm({ ...tideForm, [e.target.name]: e.target.value });
   };
 
-  // 🌊 Normal username/password login
   const handleWaveSubmit = async (e) => {
-    e.preventDefault(); // for preventing default behaviour of refresh 
+    e.preventDefault();
     setloadingWave(true);
     const success = await oceanLogin(tideForm.username, tideForm.password);
     if (success) {
@@ -35,13 +35,13 @@ const Login = () => {
     setloadingWave(false);
   };
 
-  // Login with google
   const handleGoogleSuccess = async (response) => {
     try {
       const credential = response.credential;
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/google-login/`, {
+      const res = await fetch(apiUrl("/api/google-login/"), {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credential }),
       });
@@ -50,35 +50,12 @@ const Login = () => {
 
       const data = await res.json();
 
+      oceanSetGoogleUser(data.user);
+      const displayName =
+        data.user.first_name || data.user.username || "User";
+      toast.success(` 🌊 Welcome onboard ${displayName}! `, { theme: "colored" });
 
-      // Save JWT tokens localstorage but i have to change it to cookie or memory 
-      localStorage.setItem("oceanTokens", JSON.stringify(data));
-      localStorage.setItem("oceanUser", JSON.stringify(data.user))
-
-      // Fetch user profile
-      const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/`, {
-        headers: {
-          Authorization: `Bearer ${data.access}`,
-        },
-      });
-
-      if (profileRes.ok) {
-        const userProfile = await profileRes.json();
-        const mergedUser = {
-          ...userProfile,
-          picture: data.user.picture,
-        }
-        localStorage.setItem("oceanUser", JSON.stringify(mergedUser));
-        const displayName = mergedUser.full_name || mergedUser.username || "User";
-        toast.success(` 🌊 Welcome onboard ${displayName}! `, { theme: "colored" });
-
-        // update context
-        oceanSetGoogleLogin(data, mergedUser);
-
-        // Give AuthContext time to update before redirect
-        setTimeout(() => navigate("/"), 400);
-      }
-
+      navigate("/");
     } catch (error) {
       toast.error("Google login failed. Please try again!", { theme: "colored" });
     }
@@ -94,7 +71,6 @@ const Login = () => {
       <div className="top-wave"></div>
       <div className="ocean-login-topwave-1"></div>
       <div className="ocean-login-topwave-2"></div>
-
 
       <div
         className={`card shadow-lg p-4 border-0  ${atlanticFade ? "opacity-100" : "opacity-0"

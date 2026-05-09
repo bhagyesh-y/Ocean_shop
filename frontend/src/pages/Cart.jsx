@@ -1,18 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
 import { CartContext } from "../context/Cartcontext";
+import { OceanAuthContext } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 import { motion } from "framer-motion";
+import { apiUrl } from "../config";
 
 
 const Cart = () => {
     const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext);
+    const { oceanUser } = useContext(OceanAuthContext);
     const [fadeIn, setFadeIn] = useState(false);
     const [atlanticFade, setAtlanticFade] = useState(false)
     const [showModal, setShowModal] = useState(false);
     const [loadingPayment, setLoadingPayment] = useState(false); // 🌀 Loader
     const navigate = useNavigate();
-    const BASE_URL = import.meta.env.VITE_API_URL;
 
 
     useEffect(() => {
@@ -25,14 +27,10 @@ const Cart = () => {
         // Fetch user-specific cart when component loads
         const fetchUserCart = async () => {
             try {
-                const user = JSON.parse(localStorage.getItem("oceanUser"));
-                const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-                const accessToken = tokens?.access;
-
-                if (!user || !accessToken) return;
-                const response = await fetch(`${BASE_URL}/api/cart/`, {
+                if (!oceanUser) return;
+                const response = await fetch(apiUrl("/api/cart/"), {
+                    credentials: "include",
                     headers: {
-                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json",
                     },
                 });
@@ -48,7 +46,7 @@ const Cart = () => {
         };
 
         fetchUserCart();
-    }, [setCart]);
+    }, [setCart, oceanUser]);
 
     const handleRemove = (id, name) => {
         removeFromCart(id);
@@ -68,10 +66,7 @@ const Cart = () => {
         try {
             setLoadingPayment(true); // 🌀 Start loader
 
-            const user = JSON.parse(localStorage.getItem("oceanUser") || "null");
-            const tokens = JSON.parse(localStorage.getItem("oceanTokens") || "null");
-
-            if (!user?.id || !tokens?.access) {
+            if (!oceanUser?.id) {
                 toast.error("Please log in before checkout.", { theme: "colored" });
                 setLoadingPayment(false);
                 return;
@@ -79,12 +74,11 @@ const Cart = () => {
 
             const amount = totalPrice;
 
-            // Create order
-            const response = await fetch(`${BASE_URL}/api/payments/create-order/`, {
+            const response = await fetch(apiUrl("/api/payments/create-order/"), {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${tokens.access}`,
                 },
                 body: JSON.stringify({
                     amount: amount,
@@ -115,12 +109,12 @@ const Cart = () => {
                     try {
                         // Verify payment
                         const verifyResponse = await fetch(
-                            `${BASE_URL}/api/payments/verify-payment/`,
+                            apiUrl("/api/payments/verify-payment/"),
                             {
                                 method: "POST",
+                                credentials: "include",
                                 headers: {
                                     "Content-Type": "application/json",
-                                    Authorization: `Bearer ${tokens.access}`,
                                 },
                                 body: JSON.stringify({
                                     razorpay_order_id: response.razorpay_order_id,
@@ -151,8 +145,8 @@ const Cart = () => {
                     }
                 },
                 prefill: {
-                    name: user?.first_name || "Ocean User",
-                    email: user?.email || "",
+                    name: oceanUser?.first_name || "Ocean User",
+                    email: oceanUser?.email || "",
                 },
             };
 

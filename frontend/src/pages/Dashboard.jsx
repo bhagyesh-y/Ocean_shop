@@ -3,6 +3,7 @@ import { CartContext } from "../context/Cartcontext";
 import { OceanAuthContext } from "../context/AuthContext";
 import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
+import { api } from "../api/http";
 
 const Dashboard = () => {
     const { cart, totalPrice } = useContext(CartContext);
@@ -10,7 +11,6 @@ const Dashboard = () => {
     const [atlanticFade, setAtlanticFade] = useState(false);
     const [recentOrders, setRecentOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
-    const BASE_URL = import.meta.env.VITE_API_URL;
 
     const userOcean = {
         name: oceanUser?.first_name || oceanUser?.username || "Guest User",
@@ -24,23 +24,8 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchRecentOrders = async () => {
             try {
-                const tokens = JSON.parse(localStorage.getItem("oceanTokens"));
-                const accessToken = tokens?.access;
-                if (!accessToken) {
-                    setLoadingOrders(false);
-                    return;
-                }
-
-                const res = await fetch(`${BASE_URL}/api/payments/recent/`, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                });
-
-
-                if (!res.ok) throw new Error("Failed to fetch orders");
-                const data = await res.json();
-                setRecentOrders(data);
+                const res = await api.get("/api/payments/recent/");
+                setRecentOrders(res.data);
             } catch (err) {
                 // console.error("Error fetching recent orders:", err);
                 toast.error("Could not load recent orders");

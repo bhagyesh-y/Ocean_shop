@@ -127,11 +127,11 @@ CORS_ALLOW_METHODS = [
 from datetime import timedelta
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "pacific_auth.authentication.CookieJWTAuthentication",
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
 
@@ -140,6 +140,12 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+# HttpOnly JWT cookies (SPA must use credentials: 'include' / axios withCredentials)
+JWT_ACCESS_COOKIE_NAME = "ocean_access"
+JWT_REFRESH_COOKIE_NAME = "ocean_refresh"
+JWT_COOKIE_SECURE = not DEBUG
+JWT_COOKIE_SAMESITE = "None" if JWT_COOKIE_SECURE else "Lax"
 ROOT_URLCONF = 'ocean_backend.urls'
 
 TEMPLATES = [

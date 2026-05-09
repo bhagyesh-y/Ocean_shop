@@ -1,19 +1,23 @@
 from django.contrib import admin
 from pacific_auth.views import RegisterView, ProfileView
-from django.urls import path,include,re_path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import path, include, re_path
 from pacific_auth.views import GoogleLoginView
-from rest_framework import routers 
+from pacific_auth.jwt_views import (
+    CookieTokenObtainPairView,
+    CookieTokenRefreshView,
+    LogoutView,
+)
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
-import re 
+import re
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/register/', RegisterView.as_view(), name='register'),
+    path("admin/", admin.site.urls),
+    path("api/token/", CookieTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
+    path("api/logout/", LogoutView.as_view(), name="logout"),
+    path("api/register/", RegisterView.as_view(), name="register"),
     path('api/profile/', ProfileView.as_view(), name='profile'),
     path('api/google-login/', GoogleLoginView.as_view(), name='google_login'),
     path("api/", include("pacific_products.urls")),

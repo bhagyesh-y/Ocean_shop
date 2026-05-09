@@ -1,60 +1,43 @@
 import { createContext, useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { api } from "../api/http";
+import { apiUrl } from "../config";
 
 export const OceanAuthContext = createContext();
 
 export const OceanAuthProvider = ({ children }) => {
     const [oceanUser, setOceanUser] = useState(null);
-    const [oceanTokens, setOceanTokens] = useState(null);
     const [isAuthReady, setIsAuthReady] = useState(false);
 
-    const apiUrl = import.meta.env.VITE_API_URL;
-
-    const logoutUser = useCallback(() => {
+    const logoutUser = useCallback(async () => {
+        try {
+            await fetch(apiUrl("/api/logout/"), {
+                method: "POST",
+                credentials: "include",
+            });
+        } catch {
+            /* ignore */
+        }
         setOceanUser(null);
-        setOceanTokens(null);
         localStorage.removeItem("oceanUser");
-        localStorage.removeItem("oceanTokens");
     }, []);
 
-    const fetchProfile = useCallback(
-        async (token) => {
-            const response = await axios.get(`${apiUrl}/api/profile/`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setOceanUser(response.data);
-            localStorage.setItem("oceanUser", JSON.stringify(response.data));
-        },
-        [apiUrl]
-    );
+    const fetchProfile = useCallback(async () => {
+        const response = await api.get("/api/profile/");
+        setOceanUser(response.data);
+        localStorage.setItem("oceanUser", JSON.stringify(response.data));
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
 
         const bootstrap = async () => {
-            const storedTokens = localStorage.getItem("oceanTokens");
-            if (!storedTokens) {
-                setOceanTokens(null);
-                setOceanUser(null);
-                if (!cancelled) setIsAuthReady(true);
-                return;
-            }
-
-            let parsed;
             try {
-                parsed = JSON.parse(storedTokens);
+                await fetchProfile();
             } catch {
-                logoutUser();
-                if (!cancelled) setIsAuthReady(true);
-                return;
-            }
-
-            setOceanTokens(parsed);
-
-            try {
-                await fetchProfile(parsed.access);
-            } catch {
-                logoutUser();
+                if (!cancelled) {
+                    setOceanUser(null);
+                    localStorage.removeItem("oceanUser");
+                }
             } finally {
                 if (!cancelled) setIsAuthReady(true);
             }
@@ -64,19 +47,17 @@ export const OceanAuthProvider = ({ children }) => {
         return () => {
             cancelled = true;
         };
-    }, [fetchProfile, logoutUser]);
+    }, [fetchProfile]);
 
     const oceanLogin = async (username, password) => {
         try {
-            const response = await axios.post(`${apiUrl}/api/token/`, {
-                username,
-                password,
-            });
-
-            setOceanTokens(response.data);
-            localStorage.setItem("oceanTokens", JSON.stringify(response.data));
-
-            await fetchProfile(response.data.access);
+            const { data } = await api.post("/api/token/", { username, password });
+            if (data.user) {
+                setOceanUser(data.user);
+                localStorage.setItem("oceanUser", JSON.stringify(data.user));
+            } else {
+                await fetchProfile();
+            }
             return true;
         } catch (err) {
             console.error("Login failed:", err.response?.data);
@@ -86,13 +67,12 @@ export const OceanAuthProvider = ({ children }) => {
 
     const oceanRegister = async (username, email, password, confirmPassword) => {
         try {
-            await axios.post(`${apiUrl}/api/register/`, {
+            await api.post("/api/register/", {
                 username,
                 email,
                 password,
                 password2: confirmPassword,
             });
-
             return await oceanLogin(username, password);
         } catch (err) {
             console.error("Registration failed:", err.response?.data);
@@ -100,23 +80,21 @@ export const OceanAuthProvider = ({ children }) => {
         }
     };
 
-    const oceanSetGoogleLogin = (tokens, user) => {
-        localStorage.setItem("oceanTokens", JSON.stringify(tokens));
-        localStorage.setItem("oceanUser", JSON.stringify(user));
-        setOceanTokens(tokens);
+    /** After Google OAuth: same shape as /api/profile/ plus picture (set in one response). */
+    const oceanSetGoogleUser = (user) => {
         setOceanUser(user);
+        localStorage.setItem("oceanUser", JSON.stringify(user));
     };
 
     return (
         <OceanAuthContext.Provider
             value={{
                 oceanUser,
-                oceanTokens,
                 isAuthReady,
                 oceanLogin,
                 oceanRegister,
                 logoutUser,
-                oceanSetGoogleLogin,
+                oceanSetGoogleUser,
             }}
         >
             {children}
