@@ -2,28 +2,35 @@ from django.shortcuts import render
 from rest_framework import generics, permissions
 from .models import Product, OceanCart
 from .serializers import ProductSerializer, OceanCartSerializer
-from .models import OceanCart
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 
-# 🌊 Products
+# 🌊 Products — public read, admin-only writes
 class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAdminUser()]
+
     def get_serializer_context(self):
-        return {"request":self.request}
+        return {"request": self.request}
 
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
+
+    def get_permissions(self):
+        if self.request.method in ("GET", "HEAD", "OPTIONS"):
+            return [AllowAny()]
+        return [IsAdminUser()]
+
     def get_serializer_context(self):
-        return {"request":self.request}
+        return {"request": self.request}
 
 
 # 🌊 Cart Views (isolated per user)
@@ -66,7 +73,7 @@ class OceanCartDetailView(generics.RetrieveUpdateDestroyAPIView):
         return {"request":self.request}
 
 
-@api_view(['Delete'])
+@api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def clear_cart(request):
     """ clear all itmes for thelogged in user """

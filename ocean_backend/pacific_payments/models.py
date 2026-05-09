@@ -4,6 +4,10 @@ from django.utils import timezone
 from datetime import timedelta
 
 
+def _empty_line_items():
+    return []
+
+
 class OceanOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ocean_orders")
     order_id = models.CharField(max_length=100, unique=True)
@@ -16,6 +20,8 @@ class OceanOrder(models.Model):
     contact = models.CharField(max_length=20, blank=True, null=True)
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Snapshot of cart line items at checkout (for invoices / audits)
+    line_items_snapshot = models.JSONField(default=_empty_line_items, blank=True)
 
     def __str__(self):
         return f"Order {self.order_id} by {self.user.username}"

@@ -1,215 +1,222 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from .models import OceanOrder
-import razorpay
 import json
 import hmac
 import hashlib
-from .models import OceanOrder,RazorpayWebhookLog,PaymentHistory
-from rest_framework import generics, permissions
-from .serializers import PaymentHistorySerializer
-from django.utils import timezone
-from .utils import save_and_email_invoice
-from .models import OceanInvoice
-from django.http import FileResponse ,Http404,HttpResponse
-import requests
-from django.db.models import Sum,Count
-from rest_framework.decorators import api_view,permission_classes
-from rest_framework.permissions import IsAuthenticated
-from datetime import timedelta
-from rest_framework.response import Response
-from .models import OceanInvoice
 import os
+import logging
+from decimal import Decimal, ROUND_HALF_UP
 
-@csrf_exempt
+import razorpay
+from django.conf import settings
+from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.db.models import Sum, Count
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from .models import OceanOrder, RazorpayWebhookLog, PaymentHistory, OceanInvoice
+from .serializers import PaymentHistorySerializer
+from .utils import save_and_email_invoice
+from pacific_products.models import OceanCart
+
+logger = logging.getLogger(__name__)
+
+
+def _client_error_message(exc, generic="Request could not be processed."):
+    if settings.DEBUG:
+        return str(exc)
+    return generic
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_order(request):
     """
-     Create a Razorpay order and link it to the logged-in user.
-    Keeps logic compatible with your frontend.
+    Create a Razorpay order for the authenticated user.
+    Amount is taken from the server-side cart (client amount is validated only).
     """
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            amount = int(float(data.get('amount', 0)) * 100)  # convert ₹ to paise
-            user_id = data.get('user_id')
+    user = request.user
+    try:
+        data = request.data
+        amount_client = Decimal(str(data.get("amount", "0")))
 
-            if not user_id:
-                return JsonResponse({"error": "user_id is required"}, status=400)
-
-            # Ensure user exists
-            try:
-                user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                return JsonResponse({"error": "User not found"}, status=404)
-
-            # Create Razorpay order
-            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-            payment = client.order.create({
-                "amount": amount,
-                "currency": "INR",
-                "payment_capture": 1
-            })
-
-            # Create order in DB (linked to user)
-            order = OceanOrder.objects.create(
-                user=user,
-                order_id=payment["id"],
-                amount=float(data["amount"]),
-                is_paid=False
+        cart_items = list(
+            OceanCart.objects.filter(user=user).select_related("product")
+        )
+        if not cart_items:
+            return Response(
+                {"error": "Cart is empty."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-            #  Return order details for frontend checkout
-            return JsonResponse({
+        server_total = Decimal("0")
+        line_items_snapshot = []
+        for item in cart_items:
+            price = Decimal(str(item.product.price))
+            qty = int(item.quantity)
+            line_total = price * qty
+            server_total += line_total
+            line_items_snapshot.append(
+                {
+                    "product_id": item.product_id,
+                    "name": item.product.name,
+                    "price": str(price),
+                    "qty": qty,
+                    "subtotal": str(line_total),
+                }
+            )
+
+        if abs(server_total - amount_client) > Decimal("0.05"):
+            return Response(
+                {"error": "Amount does not match your cart. Refresh and try again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        amount_paise = int(
+            (server_total * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        )
+
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+        payment = client.order.create(
+            {
+                "amount": amount_paise,
+                "currency": "INR",
+                "payment_capture": 1,
+            }
+        )
+
+        order = OceanOrder.objects.create(
+            user=user,
+            order_id=payment["id"],
+            amount=float(server_total),
+            is_paid=False,
+            line_items_snapshot=line_items_snapshot,
+        )
+
+        return Response(
+            {
                 "order_id": payment["id"],
                 "key": settings.RAZORPAY_KEY_ID,
-                "amount": data["amount"],
+                "amount": float(server_total),
                 "currency": "INR",
-                "user_id": user.id
-            })
+            }
+        )
 
-        except Exception as e:
-            print("❌ Error creating Razorpay order:", e)
-            return JsonResponse({"error": str(e)}, status=500)
+    except Exception as e:
+        logger.exception("create_order failed")
+        return Response(
+            {"error": _client_error_message(e, "Could not create payment order.")},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
-    return JsonResponse({"error": "Invalid request"}, status=400)
 
-@csrf_exempt
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def verify_payment(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            user_id = data.get("user_id")
+    user = request.user
+    try:
+        data = request.data
 
-            if not user_id:
-                return JsonResponse({"error": "user_id is required"}, status=400)
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
 
-            user = User.objects.get(id=user_id)
-            
-            print(f"🔑 RAZORPAY_KEY_ID: {settings.RAZORPAY_KEY_ID[:8]}..." if settings.RAZORPAY_KEY_ID else "None")
-            print(f"🔑 RAZORPAY_KEY_SECRET exists: {bool(settings.RAZORPAY_KEY_SECRET)}")
-
-           
-            # Razorpay client
-            client = razorpay.Client(auth=(
-                settings.RAZORPAY_KEY_ID,
-                settings.RAZORPAY_KEY_SECRET
-            ))
-
-            print(f"🔍 Verifying payment: {data.get('razorpay_payment_id')}")
-            
-            # Verify signature ONLY
-            client.utility.verify_payment_signature({
+        client.utility.verify_payment_signature(
+            {
                 "razorpay_order_id": data["razorpay_order_id"],
                 "razorpay_payment_id": data["razorpay_payment_id"],
                 "razorpay_signature": data["razorpay_signature"],
-            })
-            
-            print("✅ Signature verified successfully")
+            }
+        )
 
-            #  Update database WITHOUT calling Razorpay payment.fetch()
-            order = OceanOrder.objects.get(
-                order_id=data["razorpay_order_id"],
-                user=user
-            )
-            order.is_paid = True
-            order.payment_id = data["razorpay_payment_id"]
-            order.status = "paid"
-            order.method = "razorpay"
-            order.currency = "INR"
-            order.save()
-            
-            print("✅ Order updated successfully")
+        order = OceanOrder.objects.get(
+            order_id=data["razorpay_order_id"],
+            user=user,
+        )
+        order.is_paid = True
+        order.payment_id = data["razorpay_payment_id"]
+        order.status = "paid"
+        order.method = "razorpay"
+        order.currency = "INR"
+        order.save()
 
-            payment_history = PaymentHistory.objects.create(
-                user=user,
-                order_id=order.order_id,
-                payment_id=order.payment_id,
-                amount=order.amount,
-                method="razorpay",
-                status="success",
-            )
-            print("✅ Payment history created successfully")
+        payment_history = PaymentHistory.objects.create(
+            user=user,
+            order_id=order.order_id,
+            payment_id=order.payment_id,
+            amount=Decimal(str(order.amount)),
+            method="razorpay",
+            status="success",
+        )
 
-            try:
-                print("📧 Starting invoice generation...")
-                save_and_email_invoice(order, user, payment=payment_history)
-                print("✅ Invoice generated and emailed successfully")
-            except Exception as invoice_error:
-                print(f"⚠️ Invoice generation failed: {invoice_error}")
-                print(f"⚠️ Error type: {type(invoice_error).__name__}")
-                import traceback
-                print("⚠️ Full traceback:")
-                traceback.print_exc()
+        try:
+            save_and_email_invoice(order, user, payment=payment_history)
+        except Exception as invoice_error:
+            logger.exception("Invoice generation failed after payment")
 
-            print("🎉 Payment verification completed successfully")
+        return Response({"status": "Payment Successful"})
 
-            return JsonResponse({
-                "status": "Payment Successful"
-            })
-
-        except razorpay.errors.SignatureVerificationError as e:
-            print("❌ Signature verification failed:", e)
-            return JsonResponse({
+    except razorpay.errors.SignatureVerificationError:
+        return Response(
+            {
                 "status": "Payment Verification Failed",
-                "error": "Invalid payment signature"
-            }, status=400)
-            
-        except OceanOrder.DoesNotExist:
-            print("❌ Order not found")
-            return JsonResponse({
+                "error": "Invalid payment signature",
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except OceanOrder.DoesNotExist:
+        return Response(
+            {
                 "status": "Payment Verification Failed",
-                "error": "Order not found"
-            }, status=404)
-            
-        except Exception as e:
-            print("❌ Payment verification error:", e)
-            print(f"❌ Error type: {type(e).__name__}")
-            import traceback
-            print("❌ Full traceback:")
-            traceback.print_exc()
-            return JsonResponse({
+                "error": "Order not found",
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    except Exception as e:
+        logger.exception("verify_payment failed")
+        return Response(
+            {
                 "status": "Payment Verification Failed",
-                "error": str(e)
-            }, status=400)
+                "error": _client_error_message(
+                    e, "Payment verification failed. Contact support if you were charged."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    return JsonResponse({"error": "Invalid request"}, status=400)
-# webhook to handle razorpay payment status updates 
+
 @csrf_exempt
 def razorpay_webhook(request):
+    """Razorpay server-to-server webhook (no JWT; verified by HMAC signature)."""
     if request.method != "POST":
         return JsonResponse({"error": "Invalid method"}, status=400)
 
     try:
         webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
-        received_signature = request.headers.get("X-Razorpay-Signature")
+        if not webhook_secret:
+            logger.error("RAZORPAY_WEBHOOK_SECRET is not configured")
+            return JsonResponse({"error": "Webhook not configured"}, status=503)
+
+        received_signature = request.headers.get("X-Razorpay-Signature") or ""
         body = request.body.decode()
 
-        # ✅ Verify signature
         generated_signature = hmac.new(
             webhook_secret.encode(), body.encode(), hashlib.sha256
         ).hexdigest()
 
-        if received_signature != generated_signature:
+        if not hmac.compare_digest(received_signature, generated_signature):
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
-        # ✅ Parse and log webhook payload
         data = json.loads(body)
-        RazorpayWebhookLog.objects.create(
-            event=data.get("event"),
-            payload=data
-        )
+        RazorpayWebhookLog.objects.create(event=data.get("event"), payload=data)
 
-        # ✅ Handle specific events
         event = data.get("event")
         if event == "payment.captured":
             order_id = data["payload"]["payment"]["entity"]["order_id"]
             OceanOrder.objects.filter(order_id=order_id).update(status="PAID")
-
         elif event == "payment.failed":
             order_id = data["payload"]["payment"]["entity"]["order_id"]
             OceanOrder.objects.filter(order_id=order_id).update(status="FAILED")
@@ -217,63 +224,77 @@ def razorpay_webhook(request):
         return JsonResponse({"status": "success"})
 
     except Exception as e:
-        print("❌ Webhook error:", e)
-        return JsonResponse({"error": str(e)}, status=500)
-    
-    #  
+        logger.exception("Webhook error")
+        return JsonResponse(
+            {"error": _client_error_message(e, "Webhook processing failed.")},
+            status=500,
+        )
+
+
 class UserPaymentHistoryView(generics.ListAPIView):
     serializer_class = PaymentHistorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return PaymentHistory.objects.filter(user=self.request.user).order_by("-created_at")
+        return PaymentHistory.objects.filter(user=self.request.user).order_by(
+            "-created_at"
+        )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_invoice(request, invoice_id):
-    # 1. Validate invoice belongs to user
     try:
         invoice = OceanInvoice.objects.get(id=invoice_id, user=request.user)
     except OceanInvoice.DoesNotExist:
         raise Http404("Invoice not found for this user.")
 
-    # 2. Must have  URL
-    if not invoice.pdf_url:
-        raise Http404("Invoice PDF not available.")
-    
-    file_path = invoice.pdf_file.path  # full local path
+    if invoice.pdf_url:
+        return HttpResponseRedirect(invoice.pdf_url)
 
-    if not os.path.exists(file_path):
-        raise Http404("Invoice file not found on server.")
+    if invoice.pdf_file:
+        file_path = invoice.pdf_file.path
+        if os.path.exists(file_path):
+            from django.http import FileResponse
 
-    filename = os.path.basename(file_path)
-    response = FileResponse(open(file_path, "rb"), content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            filename = os.path.basename(file_path)
+            response = FileResponse(open(file_path, "rb"), content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            return response
 
-    return response
+    raise Http404("Invoice PDF not available.")
 
 
-# api to get payment analytics for logged in user 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def payment_analytics_user(request):
-     user = request.user
-     total_spent = PaymentHistory.objects.filter(user=user, status="success").aggregate(total=Sum("amount"))["total"] or 0
-     total_payments = PaymentHistory.objects.filter(user=user).count()
-     per_method = PaymentHistory.objects.filter(user=user, status="success").values("method").annotate(count=Count("id"), sum=Sum("amount"))
-     return JsonResponse({
-        "total_spent": float(total_spent),
-        "total_payments": total_payments,
-        "per_method": list(per_method)
-    })
-     
-#  api to get recent payments for logged in user 
-@api_view(['GET'])
+    user = request.user
+    total_spent = (
+        PaymentHistory.objects.filter(user=user, status="success").aggregate(
+            total=Sum("amount")
+        )["total"]
+        or 0
+    )
+    total_payments = PaymentHistory.objects.filter(user=user).count()
+    per_method = (
+        PaymentHistory.objects.filter(user=user, status="success")
+        .values("method")
+        .annotate(count=Count("id"), sum=Sum("amount"))
+    )
+    return JsonResponse(
+        {
+            "total_spent": float(total_spent),
+            "total_payments": total_payments,
+            "per_method": list(per_method),
+        }
+    )
+
+
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def recent_payments (request):
-    payments=(
-        PaymentHistory.objects.filter(user=request.user).order_by("-created_at")[:5]
-            )
-    serializer= PaymentHistorySerializer(payments,many=True)
+def recent_payments(request):
+    payments = PaymentHistory.objects.filter(user=request.user).order_by(
+        "-created_at"
+    )[:5]
+    serializer = PaymentHistorySerializer(payments, many=True)
     return Response(serializer.data)

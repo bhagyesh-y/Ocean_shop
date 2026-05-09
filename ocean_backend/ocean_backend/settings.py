@@ -99,8 +99,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://ocean-shop-one.vercel.app"
 ]
 
-CORS_ALLOW_CREDENTIALS = True 
-CORS_ALLOW_ALL_HEADERS = True
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "Authorization"]
 

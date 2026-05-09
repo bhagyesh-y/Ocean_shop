@@ -30,39 +30,62 @@ def generate_invoice_pdf(order, user, payment=None):
         "company_logo": "https://i.ibb.co/dg3tXxP/ocean-logo.png",
     }
 
-    try:
-        if hasattr(order, "products"):
-            items = order.products.all()
-        elif hasattr(order, "cart_items"):
-            items = order.cart_items.all()
-        else:
-            items = OceanCart.objects.filter(user=user)
-    except Exception as e:
-        print("⚠️ Could not fetch items for invoice:", e)
-        items = []
-
-  
     final_items = []
-    total_amount = 0
+    total_amount = 0.0
 
-    for item in items:
+    snapshot = getattr(order, "line_items_snapshot", None) or []
+    if snapshot:
+        for row in snapshot:
+            try:
+                name = row.get("name", "Item")
+                qty = int(row.get("qty", 1))
+                price = float(row.get("price", 0))
+                subtotal = float(row.get("subtotal", price * qty))
+                total_amount += subtotal
+                final_items.append(
+                    {
+                        "name": name,
+                        "qty": qty,
+                        "price": price,
+                        "subtotal": subtotal,
+                    }
+                )
+            except (TypeError, ValueError) as e:
+                print("⚠️ Error processing snapshot line:", e)
+    else:
         try:
-            name = getattr(item.product, "name", getattr(item, "name", "Unknown"))
-            price = float(getattr(item.product, "price", getattr(item, "price", 0)))
-            qty = int(getattr(item, "quantity", 1))
-
-            subtotal = price * qty
-            total_amount += subtotal
-
-            final_items.append({
-                "name": name,
-                "qty": qty,
-                "price": price,
-                "subtotal": subtotal,
-            })
-
+            if hasattr(order, "products"):
+                items = order.products.all()
+            elif hasattr(order, "cart_items"):
+                items = order.cart_items.all()
+            else:
+                items = OceanCart.objects.filter(user=user)
         except Exception as e:
-            print("⚠️ Error processing item:", e)
+            print("⚠️ Could not fetch items for invoice:", e)
+            items = []
+
+        for item in items:
+            try:
+                name = getattr(item.product, "name", getattr(item, "name", "Unknown"))
+                price = float(
+                    getattr(item.product, "price", getattr(item, "price", 0))
+                )
+                qty = int(getattr(item, "quantity", 1))
+
+                subtotal = price * qty
+                total_amount += subtotal
+
+                final_items.append(
+                    {
+                        "name": name,
+                        "qty": qty,
+                        "price": price,
+                        "subtotal": subtotal,
+                    }
+                )
+
+            except Exception as e:
+                print("⚠️ Error processing item:", e)
 
     # Add final computed items + total
     context["items"] = final_items
