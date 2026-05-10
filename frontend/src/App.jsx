@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { CartProvider } from "./context/Cartcontext";
-import { OceanAuthProvider, OceanAuthContext } from "./context/AuthContext";
+import { OceanAuthContext } from "./context/AuthContext";
 import OceanPrivateRoute from "./utils/OceanPrivateRoute";
 
 import Navbar from "./components/Navbar";
@@ -38,26 +37,73 @@ const AppRoutes = () => {
     );
   }
 
+  if (!oceanUser) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <>
       <Navbar />
       <main className="flex-fill">
         <Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/register" element={<Navigate to="/" replace />} />
+
           <Route
-            path="/login"
-            element={oceanUser ? <Navigate to="/" replace /> : <Login />}
-          />
-          <Route
-            path="/register"
-            element={oceanUser ? <Navigate to="/" replace /> : <Register />}
+            path="/"
+            element={
+              <OceanPrivateRoute>
+                <Home />
+              </OceanPrivateRoute>
+            }
           />
 
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Product />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/customer-service" element={<CustomerService />} />
-          <Route path="/quick-links" element={<QuickLinks />} />
+          <Route
+            path="/products"
+            element={
+              <OceanPrivateRoute>
+                <Product />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/product/:id"
+            element={
+              <OceanPrivateRoute>
+                <ProductDetails />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <OceanPrivateRoute>
+                <About />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/customer-service"
+            element={
+              <OceanPrivateRoute>
+                <CustomerService />
+              </OceanPrivateRoute>
+            }
+          />
+          <Route
+            path="/quick-links"
+            element={
+              <OceanPrivateRoute>
+                <QuickLinks />
+              </OceanPrivateRoute>
+            }
+          />
 
           <Route
             path="/cart"
@@ -102,18 +148,14 @@ const AppRoutes = () => {
 
 const App = () => {
   return (
-    <OceanAuthProvider>
-      <CartProvider>
-        <Router>
-          <BackToTop />
-          <ScrollToTop />
-          <div className="d-flex flex-column min-vh-100">
-            <AppRoutes />
-          </div>
-          <ToastContainer />
-        </Router>
-      </CartProvider>
-    </OceanAuthProvider>
+    <Router>
+      <BackToTop />
+      <ScrollToTop />
+      <div className="d-flex flex-column min-vh-100">
+        <AppRoutes />
+      </div>
+      <ToastContainer />
+    </Router>
   );
 };
 

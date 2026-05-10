@@ -4,275 +4,194 @@ import { CartContext } from "../context/Cartcontext.jsx";
 import { OceanAuthContext } from "../context/AuthContext.jsx";
 import { FaShoppingCart, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
 
-/* Responsive ocean-themed Navbar */
 const PacificNavbar = () => {
-    const { cart } = useContext(CartContext);
-    const { oceanUser, logoutUser } = useContext(OceanAuthContext);
-    const [pacificOpen, setPacificOpen] = useState(false);//mobile sidebar state
-    const location = useLocation(); // to track current route
+    const { cart, clearCart } = useContext(CartContext);
+    const { logoutUser } = useContext(OceanAuthContext);
+    const [pacificOpen, setPacificOpen] = useState(false);
+    const location = useLocation();
     const reefRef = useRef(null);
     const navigate = useNavigate();
 
-    // Close sidebar on route change
     useEffect(() => {
         setPacificOpen(false);
     }, [location]);
 
-    // Close on ESC key
     useEffect(() => {
         const onKey = (e) => e.key === "Escape" && setPacificOpen(false);
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
     }, []);
 
-    // Focus trap
     useEffect(() => {
         if (pacificOpen && reefRef.current) reefRef.current.focus();
     }, [pacificOpen]);
 
+    useEffect(() => {
+        if (!pacificOpen) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [pacificOpen]);
+
+    const desktopNavClass = ({ isActive }) =>
+        `nav-link pacificNavLink${isActive ? " pacificNavLink--active" : ""}`;
+
+    const reefLinkClass = ({ isActive }) => `reefLink${isActive ? " reefLink--active" : ""}`;
+
+    const closeReef = () => setPacificOpen(false);
+
     const handleLogout = async () => {
+        closeReef();
+        await clearCart();
         await logoutUser();
-        navigate("/login");
+        navigate("/login", { replace: true });
     };
 
-
     return (
-        <nav className="navbar navbar-dark bg-dark pacificNavbar">
-            <div className="container-fluid">
+        <header className="pacificNavShell sticky-top">
+            <nav
+                className="navbar navbar-expand-lg navbar-dark pacificNavbar"
+                aria-label="Main navigation"
+            >
+                <div className="container-fluid px-2 px-sm-3 align-items-center gap-2">
+                    <NavLink to="/" className="navbar-brand fw-bold pacificBrand mb-0" onClick={closeReef}>
+                        <span className="pacificBrand__icon" aria-hidden>
+                            <FaShoppingCart />
+                        </span>
+                        <span className="pacificBrand__text">Ocean Shop</span>
+                    </NavLink>
 
-                <NavLink to="/" className="navbar-brand fw-bold text-light">
-                    Ocean Shop <FaShoppingCart className="ms-1" />
-                </NavLink>
+                    <div className="pacificLinks d-none d-lg-flex ms-auto align-items-center flex-wrap justify-content-end gap-1">
+                        <NavLink to="/" end className={desktopNavClass}>
+                            Home
+                        </NavLink>
+                        <NavLink to="/products" className={desktopNavClass}>
+                            Products
+                        </NavLink>
+                        <NavLink to="/about" className={desktopNavClass}>
+                            About
+                        </NavLink>
+                        <NavLink to="/dashboard" className={desktopNavClass}>
+                            Dashboard
+                        </NavLink>
+                        <NavLink to="/feedback" className={desktopNavClass}>
+                            Feedback
+                        </NavLink>
 
-                <div className="pacificLinks d-none d-lg-flex ms-auto align-items-center">
-                    {oceanUser ? (
-                        <>
-                            <NavLink
-                                to="/"
-                                end
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Home
-                            </NavLink>
-                            <NavLink
-                                to="/products"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Products
-                            </NavLink>
-                            <NavLink
-                                to="/dashboard"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Dashboard
-                            </NavLink>
-                            <NavLink
-                                to="/feedback"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Feedback
-                            </NavLink>
-
-                            <NavLink
-                                to="/cart"
-                                className="btn btn-outline-light position-relative ms-3"
-                            >
-                                <FaShoppingCart className="me-1" />
-                                {cart?.length > 0 && (
-                                    <span
-                                        className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                        style={{ fontSize: "0.7rem" }}
-                                    >
-                                        {cart.length}
-                                    </span>
-                                )}
-                            </NavLink>
-
-                            <NavLink to="/payment-history"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }>
-                                Payment History
-                            </NavLink>
-
-                            {/* 🌊 Logout Button */}
-                            <button
-                                onClick={handleLogout}
-                                className="btn btn-outline-danger ms-3"
-                            >
-                                <FaSignOutAlt className="me-1" /> Logout
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <NavLink
-                                to="/"
-                                end
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Home
-                            </NavLink>
-                            <NavLink
-                                to="/products"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Products
-                            </NavLink>
-                            <NavLink
-                                to="/about"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                About
-                            </NavLink>
-                            <NavLink
-                                to="/login"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Login
-                            </NavLink>
-                            <NavLink
-                                to="/register"
-                                className={({ isActive }) =>
-                                    isActive
-                                        ? "nav-link text-info fw-bold"
-                                        : "nav-link text-light"
-                                }
-                            >
-                                Register
-                            </NavLink>
-                        </>
-                    )}
-                </div>
-
-                {/* Mobile toggle */}
-                <button
-                    className="btn atlanticToggle d-lg-none ms-auto"
-                    aria-label="Open menu"
-                    onClick={() => setPacificOpen(true)}
-                >
-                    <FaBars className="text-light" />
-                </button>
-
-                {/* Mobile Sidebar */}
-                <div
-                    className={`reefSidebar ${pacificOpen ? "reef-open" : ""}`}
-                    role="dialog"
-                    aria-hidden={!pacificOpen}
-                    ref={reefRef}
-                    tabIndex={-1}
-                >
-                    <div className="reefHeader d-flex align-items-center justify-content-between px-3 py-2">
-                        <div className="text-light fw-bold d-flex align-items-center">
-                            <FaShoppingCart className="me-2" /> Ocean Shop
-                        </div>
-                        <button
-                            className="btn reefClose"
-                            aria-label="Close menu"
-                            onClick={() => setPacificOpen(false)}
+                        <NavLink
+                            to="/cart"
+                            className={({ isActive }) =>
+                                `btn pacificCartBtn position-relative ms-lg-2${isActive ? " pacificCartBtn--active" : ""}`
+                            }
                         >
-                            <FaTimes />
+                            <FaShoppingCart className="me-1" aria-hidden />
+                            <span className="d-none d-xl-inline">Cart</span>
+                            {cart?.length > 0 && (
+                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill pacificCartBadge">
+                                    {cart.length}
+                                </span>
+                            )}
+                        </NavLink>
+
+                        <NavLink to="/payment-history" className={desktopNavClass}>
+                            <span className="d-none d-xl-inline">Payment </span>History
+                        </NavLink>
+
+                        <button type="button" onClick={handleLogout} className="btn pacificLogoutBtn ms-lg-2">
+                            <FaSignOutAlt className="me-1" aria-hidden />
+                            Logout
                         </button>
                     </div>
 
-                    <div className="reefBody px-3 py-3">
-                        {oceanUser ? (
-                            <>
-                                <NavLink to="/" end className="reefLink">
-                                    Home
-                                </NavLink>
-                                <NavLink to="/products" className="reefLink">
-                                    Products
-                                </NavLink>
-                                <NavLink to="/dashboard" className="reefLink">
-                                    Dashboard
-                                </NavLink>
-                                <NavLink to="/feedback" className="reefLink">
-                                    Feedback
-                                </NavLink>
-                                <NavLink to="/about" className="reefLink">
-                                    About
-                                </NavLink>
-                                <NavLink to="/payment-history" className="reefLink">
-                                    Payment History
-                                </NavLink>
-                                <NavLink
-                                    to="/cart"
-                                    className="btn btn-light w-100 mt-3 position-relative"
-                                >
-                                    <FaShoppingCart className="me-1" />
-                                    {cart?.length > 0 && (
-                                        <span
-                                            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                            style={{ fontSize: "0.7rem" }}
-                                        >
-                                            {cart.length}
-                                        </span>
-                                    )}
-                                </NavLink>
-                                <button
-                                    onClick={handleLogout}
-                                    className="btn btn-danger w-100 mt-3"
-                                >
-                                    <FaSignOutAlt className="me-1" /> Logout
-                                </button>
-                            </>
+                    <button
+                        type="button"
+                        className="btn atlanticToggle d-lg-none ms-auto flex-shrink-0"
+                        aria-label={pacificOpen ? "Close menu" : "Open menu"}
+                        aria-expanded={pacificOpen}
+                        aria-controls="reef-drawer"
+                        onClick={() => setPacificOpen((o) => !o)}
+                    >
+                        {pacificOpen ? (
+                            <FaTimes className="atlanticToggle__icon" aria-hidden />
                         ) : (
-                            <>
-                                <NavLink to="/" end className="reefLink">
-                                    Home
-                                </NavLink>
-                                <NavLink to="/products" className="reefLink">
-                                    Products
-                                </NavLink>
-                                <NavLink to="/about" className="reefLink">
-                                    About
-                                </NavLink>
-                                <NavLink to="/login" className="reefLink">
-                                    Login
-                                </NavLink>
-                                <NavLink to="/register" className="reefLink">
-                                    Register
-                                </NavLink>
-                            </>
+                            <FaBars className="atlanticToggle__icon" aria-hidden />
                         )}
-                    </div>
+                    </button>
                 </div>
+            </nav>
+
+            {pacificOpen && (
+                <button
+                    type="button"
+                    className="reefBackdrop"
+                    aria-label="Close menu"
+                    onClick={closeReef}
+                />
+            )}
+
+            <div
+                id="reef-drawer"
+                className={`reefSidebar ${pacificOpen ? "reef-open" : ""}`}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Mobile menu"
+                aria-hidden={!pacificOpen}
+                ref={reefRef}
+                tabIndex={-1}
+            >
+                <div className="reefHeader d-flex align-items-center justify-content-between px-3 py-3">
+                    <div className="reefHeader__brand text-light fw-bold d-flex align-items-center gap-2">
+                        <FaShoppingCart className="text-info" aria-hidden />
+                        <span>Ocean Shop</span>
+                    </div>
+                    <button type="button" className="btn reefClose" aria-label="Close menu" onClick={closeReef}>
+                        <FaTimes />
+                    </button>
+                </div>
+
+                <nav className="reefBody px-3 pb-4" aria-label="Mobile navigation">
+                    <NavLink to="/" end className={reefLinkClass} onClick={closeReef}>
+                        Home
+                    </NavLink>
+                    <NavLink to="/products" className={reefLinkClass} onClick={closeReef}>
+                        Products
+                    </NavLink>
+                    <NavLink to="/about" className={reefLinkClass} onClick={closeReef}>
+                        About
+                    </NavLink>
+                    <NavLink to="/dashboard" className={reefLinkClass} onClick={closeReef}>
+                        Dashboard
+                    </NavLink>
+                    <NavLink to="/feedback" className={reefLinkClass} onClick={closeReef}>
+                        Feedback
+                    </NavLink>
+                    <NavLink to="/payment-history" className={reefLinkClass} onClick={closeReef}>
+                        Payment history
+                    </NavLink>
+                    <NavLink
+                        to="/cart"
+                        className={({ isActive }) =>
+                            `btn pacificReefCart w-100 mt-2 position-relative${isActive ? " pacificReefCart--active" : ""}`
+                        }
+                        onClick={closeReef}
+                    >
+                        <FaShoppingCart className="me-2" aria-hidden />
+                        Your cart
+                        {cart?.length > 0 && (
+                            <span className="badge rounded-pill pacificCartBadge pacificReefCart__badge">
+                                {cart.length}
+                            </span>
+                        )}
+                    </NavLink>
+                    <button type="button" onClick={handleLogout} className="btn pacificReefLogout w-100 mt-3">
+                        <FaSignOutAlt className="me-2" aria-hidden />
+                        Log out
+                    </button>
+                </nav>
             </div>
-        </nav>
+        </header>
     );
 };
 

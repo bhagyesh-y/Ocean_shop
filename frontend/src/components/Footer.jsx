@@ -32,7 +32,6 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* 🐚 About Section */}
                     <div className="col-lg-2 col-md-3 col-6 mb-4">
                         <h6 className="fw-semibold text-light mb-3">About</h6>
                         <ul className="list-unstyled text-light opacity-75 small">
@@ -54,7 +53,6 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* 🏄 Customer Service */}
                     <div className="col-lg-2 col-md-3 col-6 mb-4">
                         <h6 className="fw-semibold text-light mb-3">Customer Service</h6>
                         <ul className="list-unstyled text-light opacity-75 small">
@@ -76,22 +74,21 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* ⚓ Quick Links */}
                     <div className="col-lg-3 col-md-6 mb-4">
                         <h6 className="fw-semibold text-light mb-3">Quick Links</h6>
                         <ul className="list-unstyled text-light opacity-75 small">
                             <li>
-                                <NavLink to="/quick-Links" className="footer-link">
+                                <NavLink to="/quick-links" className="footer-link">
                                     Privacy Policy
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to="/quick-Links" className="footer-link">
+                                <NavLink to="/quick-links" className="footer-link">
                                     Terms of Service
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to="/quick-Links" className="footer-link">
+                                <NavLink to="/quick-links" className="footer-link">
                                     FAQs
                                 </NavLink>
                             </li>

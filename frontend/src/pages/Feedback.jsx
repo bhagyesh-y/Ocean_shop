@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import emailjs from "emailjs-com";
 import { toast } from "react-toastify";
+import { FaPaperPlane, FaUser, FaEnvelope, FaCommentDots } from "react-icons/fa";
 
 const Feedback = () => {
     const [atlanticFade, setAtlanticFade] = useState(false);
@@ -37,100 +38,141 @@ const Feedback = () => {
                     setTimeout(() => {
                         setSending(false);
                         setSuccess(true);
-                        toast.success("Feedback sent successfully 🌊", { theme: "colored" });
+                        toast.success("Message carried on the tide — thank you!", { theme: "colored" });
                         setFormData({ name: "", email: "", message: "" });
 
-                        // ⏱ Auto return to form after 2s
                         setTimeout(() => {
                             setSuccess(false);
-                        }, 2000);
+                        }, 2800);
                     }, 600);
                 },
                 () => {
                     setSending(false);
-                    toast.error("Failed to send feedback 😕", { theme: "colored" });
+                    toast.error("Could not send — please try again.", { theme: "colored" });
                 }
             );
     };
 
     return (
         <div
-            className={`container py-5 ${atlanticFade ? "opacity-100" : "opacity-0"
-                }`}
-            style={{
-                background: "linear-gradient(180deg, #ade8f4 0%, #48cae4 100%)",
-                borderRadius: "15px",
-                minHeight: "80vh",
-                transition: "opacity 1s ease, transform 0.6s ease",
-                transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
-            }}
+            className={`ocean-feedback-page ${atlanticFade ? "ocean-feedback-page--visible" : ""}`}
         >
-            <h2 className="text-center fw-bold text-white mb-4">
-                We’d love your Feedback 💬
-            </h2>
+            <div className="ocean-feedback-wave" aria-hidden />
 
-            <div className={`feedback-card mx-auto ${sending ? "sending" : ""}`}>
-                {/* 🌊 WAVE SPLASH */}
-                {sending && <div className="wave-splash"></div>}
-
-                {!success ? (
-                    <form
-                        onSubmit={handleSubmit}
-                        className="p-4 bg-white shadow-lg rounded-4 feedback-form"
-                    >
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Your Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                className="form-control"
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Your Email</label>
-                            <input
-                                type="email"
-                                name="email"
-                                className="form-control"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Message</label>
-                            <textarea
-                                name="message"
-                                className="form-control"
-                                rows="4"
-                                value={formData.message}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="btn btn-primary w-100 mt-2"
-                            disabled={sending}
-                        >
-                            {sending ? "⏳ Sending feedback..." : "🌊 Send Feedback"}
-                        </button>
-                    </form>
-                ) : (
-                    <div className="feedback-success bg-white shadow-lg rounded-4 p-5">
-                        <div className="checkmark">✓</div>
-                        <h4 className="fw-bold mt-3">Thank you!</h4>
-                        <p className="text-muted">
-                            Your feedback has been sent 🌊
+            <div className="container-fluid px-3 px-sm-4 py-4 py-md-5">
+                <div className="ocean-feedback-inner mx-auto">
+                    <header className="text-center mb-4 mb-md-5">
+                        <p className="ocean-feedback-eyebrow text-uppercase small fw-semibold mb-2">
+                            Send a bottle from the shore
                         </p>
+                        <h1 className="h2 fw-bold ocean-feedback-title mb-3">
+                            We&apos;d love your feedback
+                        </h1>
+                        <p className="mx-auto ocean-feedback-lead mb-0">
+                            Drop us a line about your voyage through Ocean Shop — every ripple helps us improve.
+                        </p>
+                    </header>
+
+                    <div className={`feedback-card mx-auto position-relative ${sending ? "sending" : ""}`}>
+                        {sending && <div className="wave-splash" aria-hidden />}
+
+                        {!success ? (
+                            <form
+                                onSubmit={handleSubmit}
+                                className="ocean-feedback-form shadow-lg"
+                                noValidate
+                            >
+                                <div className="ocean-feedback-form__fields">
+                                    <div className="mb-3 mb-md-4">
+                                        <label htmlFor="feedback-name" className="form-label ocean-feedback-label">
+                                            <FaUser className="ocean-feedback-label__icon" aria-hidden />
+                                            Your name
+                                        </label>
+                                        <input
+                                            id="feedback-name"
+                                            type="text"
+                                            name="name"
+                                            className="form-control ocean-feedback-control"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            autoComplete="name"
+                                            required
+                                            placeholder="Captain Coral"
+                                        />
+                                    </div>
+
+                                    <div className="mb-3 mb-md-4">
+                                        <label htmlFor="feedback-email" className="form-label ocean-feedback-label">
+                                            <FaEnvelope className="ocean-feedback-label__icon" aria-hidden />
+                                            Email
+                                        </label>
+                                        <input
+                                            id="feedback-email"
+                                            type="email"
+                                            name="email"
+                                            className="form-control ocean-feedback-control"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            autoComplete="email"
+                                            inputMode="email"
+                                            required
+                                            placeholder="you@example.com"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label htmlFor="feedback-message" className="form-label ocean-feedback-label">
+                                            <FaCommentDots className="ocean-feedback-label__icon" aria-hidden />
+                                            Message
+                                        </label>
+                                        <textarea
+                                            id="feedback-message"
+                                            name="message"
+                                            className="form-control ocean-feedback-control ocean-feedback-textarea"
+                                            rows={5}
+                                            value={formData.message}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder="Tell us what worked, what sank, or what you'd like to see next…"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="btn ocean-feedback-submit w-100"
+                                    disabled={sending}
+                                >
+                                    {sending ? (
+                                        <>
+                                            <span
+                                                className="spinner-border spinner-border-sm me-2"
+                                                role="status"
+                                                aria-hidden
+                                            />
+                                            Sending…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FaPaperPlane className="me-2" aria-hidden />
+                                            Send message
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        ) : (
+                            <div className="feedback-success ocean-feedback-success shadow-lg">
+                                <div className="checkmark" aria-hidden>
+                                    ✓
+                                </div>
+                                <h2 className="h4 fw-bold mt-3">Message received</h2>
+                                <p className="text-muted mb-0 small">
+                                    Thanks for helping us chart calmer waters.
+                                </p>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );
