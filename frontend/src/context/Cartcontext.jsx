@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 import { apiUrl } from "../config";
 import { OceanAuthContext } from "./AuthContext";
@@ -9,19 +9,40 @@ export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
     const { oceanUser } = useContext(OceanAuthContext);
 
-    const addToCart = async (item) => {
+    const syncCartFromServer = useCallback(async () => {
+        if (!oceanUser) {
+            setCart([]);
+            return;
+        }
         try {
-            if (!oceanUser) {
-                toast.info("Please log in to add items to your cart.", { theme: "colored" });
-                return;
+            const response = await fetch(apiUrl("/api/cart/"), {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setCart(Array.isArray(data) ? data : []);
             }
+        } catch (error) {
+            console.error("Error loading cart:", error);
+        }
+    }, [oceanUser]);
 
+    useEffect(() => {
+        syncCartFromServer();
+    }, [syncCartFromServer]);
+
+    const addToCart = async (item) => {
+        if (!oceanUser) {
+            toast.info("Please log in to add items to your cart.", { theme: "colored" });
+            return false;
+        }
+        try {
             const response = await fetch(apiUrl("/api/cart/"), {
                 method: "POST",
                 credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     product_id: item.id,
                     quantity: 1,
@@ -29,13 +50,30 @@ export const CartProvider = ({ children }) => {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setCart((prev) => [...prev, data]);
-            } else {
-                console.error("Failed to add item to backend cart");
+                await syncCartFromServer();
+                return true;
             }
+
+            let detail = "Could not add this item to your cart.";
+            try {
+                const errBody = await response.json();
+                if (typeof errBody === "object" && errBody !== null) {
+                    const first =
+                        errBody.detail ||
+                        errBody.message ||
+                        (Array.isArray(errBody.non_field_errors) && errBody.non_field_errors[0]) ||
+                        Object.values(errBody).flat().find((v) => typeof v === "string");
+                    if (first) detail = String(first);
+                }
+            } catch {
+                /* ignore parse errors */
+            }
+            toast.error(detail, { theme: "colored" });
+            return false;
         } catch (error) {
             console.error("Error adding to cart:", error);
+            toast.error("Network error — try again.", { theme: "colored" });
+            return false;
         }
     };
 
@@ -53,9 +91,7 @@ export const CartProvider = ({ children }) => {
             await fetch(apiUrl("/api/cart/clear/"), {
                 method: "DELETE",
                 credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
             });
 
             setCart([]);
@@ -65,11 +101,11 @@ export const CartProvider = ({ children }) => {
     };
 
     const totalPrice = cart.reduce(
-        (sum, item) => sum + (item.product?.price * item.quantity),
+        (sum, item) => sum + (item.product?.price ?? 0) * (item.quantity ?? 0),
         0
     );
 
-    const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+    const cartCount = cart.reduce((total, item) => total + (item.quantity ?? 0), 0);
 
     return (
         <CartContext.Provider

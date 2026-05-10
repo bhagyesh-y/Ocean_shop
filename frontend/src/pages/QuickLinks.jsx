@@ -1,154 +1,97 @@
 import React, { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 
 const QuickLinks = () => {
-    const [atlanticFade, setAtlanticFade] = useState(false);
+    const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        setTimeout(() => setAtlanticFade(true), 150);
+        setTimeout(() => setVisible(true), 120);
     }, []);
 
     return (
-        <div className="ocean-wrapper">
-            {/* Fog Layers */}
-            <div className="fog fog-1"></div>
-            <div className="fog fog-2"></div>
+        <div className={`ocean-static-page ${visible ? "ocean-static-page--visible" : ""}`}>
+            <div className="ocean-static-sheen" aria-hidden />
+            <div className="ocean-static-fog" aria-hidden />
+            <div className="ocean-static-fog ocean-static-fog--2" aria-hidden />
+            <span className="ocean-static-bubble ocean-static-bubble--1" aria-hidden />
+            <span className="ocean-static-bubble ocean-static-bubble--2" aria-hidden />
+            <span className="ocean-static-bubble ocean-static-bubble--3" aria-hidden />
+            <span className="ocean-static-bubble ocean-static-bubble--4" aria-hidden />
+            <span className="ocean-static-bubble ocean-static-bubble--5" aria-hidden />
 
-            {/* Bubble Layers */}
-            <div className="bubble b1"></div>
-            <div className="bubble b2"></div>
-            <div className="bubble b3"></div>
-            <div className="bubble b4"></div>
-            <div className="bubble b5"></div>
+            <div className="container py-4 py-md-5 position-relative">
+                <div className="ocean-static-inner">
+                    <header className="ocean-static-hero">
+                        <p className="ocean-static-eyebrow text-uppercase fw-semibold mb-2">Policies</p>
+                        <h1 className="h2 fw-bold ocean-static-title mb-3">Quick links</h1>
+                        <p className="ocean-static-lead mb-0">
+                            Privacy, terms, security, and FAQs — anchored in plain language.
+                        </p>
+                    </header>
 
-            <div
-                className={`container py-5 position-relative ${atlanticFade ? "opacity-100" : "opacity-0"
-                    }`}
-                style={{
-                    transition: "opacity 1s ease, transform 0.6s ease",
-                    transform: atlanticFade ? "translateY(0)" : "translateY(20px)",
-                    borderRadius: "12px",
-                    color: "white",
-                }}
-            >
-                <h1 className="text-center fw-bold mb-4">Quick Links ⚓</h1>
+                    <article className="ocean-static-card">
+                        <h2>Privacy policy</h2>
+                        <p>
+                            We collect only what we need to fulfill orders and improve your experience. Data is
+                            encrypted in transit; we don&apos;t sell your shopping profile to advertisers.
+                        </p>
+                        <p className="mb-0">
+                            You may request account closure or export by contacting support with the email on your
+                            account.
+                        </p>
+                    </article>
 
-                {/* Privacy Policy */}
-                <section className="fade-up mb-5">
-                    <h3>🔐 Privacy Policy</h3>
-                    <p>
-                        At Ocean Shop , your privacy is our anchor. We collect only essential
-                        information required to process your orders and improve your shopping
-                        experience. Your data is encrypted, securely stored, and never shared
-                        with third-party advertisers.
-                    </p>
-                    <p>
-                        You may request data deletion, account closure, or a full data report
-                        anytime by contacting our support team.
-                    </p>
-                </section>
+                    <article className="ocean-static-card">
+                        <h2>Terms of service</h2>
+                        <p>
+                            By using Ocean Shop you agree to fair use: honest listings, respectful communication, and
+                            compliance with payment and shipping policies shown at checkout.
+                        </p>
+                        <p className="mb-0">
+                            Orders, warranties, and returns follow the terms presented on the site at the time of
+                            purchase.
+                        </p>
+                    </article>
 
-                {/* Terms of Service */}
-                <section className="fade-up mb-5">
-                    <h3>📜 Terms of Service</h3>
-                    <p>
-                        By using our platform, you agree to follow our fair usage guidelines,
-                        enjoy ethical commerce, and interact respectfully with our community.
-                    </p>
-                    <p>
-                        All orders, warranties, and returns are governed by global e-commerce standards
-                        to ensure transparency and trust between you and OceanCart.
-                    </p>
-                </section>
+                    <article className="ocean-static-card">
+                        <h2>Security &amp; data protection</h2>
+                        <p>
+                            Connections use HTTPS. Payments are processed by trusted gateways (e.g. Razorpay); we
+                            don&apos;t store full card or UPI secrets on our servers.
+                        </p>
+                        <p className="mb-0">Rotate passwords periodically and never share OTPs or login links.</p>
+                    </article>
 
-                {/* Security Info */}
-                <section className="fade-up mb-5">
-                    <h3>🛡️ Security & Data Protection</h3>
-                    <p>
-                        Your transactions are protected using industry-grade SSL encryption.
-                        We also comply with international data protection standards including
-                        GDPR-aligned privacy rules.
-                    </p>
-                    <p>
-                        Payment information is handled securely through verified payment gateways
-                        like Razorpay — we never store card or UPI details on our servers.
-                    </p>
-                </section>
+                    <article className="ocean-static-card">
+                        <h2>FAQs</h2>
+                        <ul>
+                            <li>
+                                <strong>Cancel an order?</strong> Use your dashboard before dispatch when cancellation
+                                is available.
+                            </li>
+                            <li>
+                                <strong>Delivery time?</strong> Usually a few business days; tracking updates by
+                                carrier.
+                            </li>
+                            <li>
+                                <strong>Password reset?</strong> Use the flow on the login page.
+                            </li>
+                            <li>
+                                <strong>Invoices?</strong> Open <NavLink to="/payment-history">Payment history</NavLink>.
+                            </li>
+                        </ul>
+                    </article>
 
-                {/* FAQs */}
-                <section className="fade-up">
-                    <h3>❓ Frequently Asked Questions</h3>
-                    <ul style={{ lineHeight: "1.9" }}>
-                        <li><strong>How do I cancel an order?</strong>
-                            You can cancel from your Dashboard under “My Orders” before dispatch.</li>
-
-                        <li><strong>How long does delivery take?</strong>
-                            3–7 days depending on your location. Real-time tracking available.</li>
-
-                        <li><strong>How do I reset my password?</strong>
-                            Use the “Forgot Password” option on the login page to generate a reset link.</li>
-
-                        <li><strong>Where do I download my invoices?</strong>
-                            Visit “Payment History” — invoices are always available in one click.</li>
-                    </ul>
-                </section>
+                    <div className="text-center ocean-static-actions mt-2">
+                        <NavLink to="/customer-service" className="btn ocean-dash-btn-secondary px-4 me-sm-2 mb-2 mb-sm-0">
+                            Customer service
+                        </NavLink>
+                        <NavLink to="/feedback" className="btn ocean-dash-btn-primary px-4">
+                            Contact us
+                        </NavLink>
+                    </div>
+                </div>
             </div>
-
-            {/* Underwater Styling */}
-            <style jsx="true">{`
-                .ocean-wrapper {
-                    position: relative;
-                    min-height: 100vh;
-                    overflow: hidden;
-                    background: linear-gradient(180deg, #003459, #005b96, #0088c7);
-                }
-
-                /* Fog Effects */
-                .fog {
-                    position: absolute;
-                    width: 200%;
-                    height: 200px;
-                    top: 25%;
-                    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-                    filter: blur(40px);
-                    animation: drift 20s infinite linear;
-                }
-                .fog-1 { left: -40%; animation-duration: 18s; }
-                .fog-2 { left: -20%; top: 45%; animation-duration: 23s; }
-
-                @keyframes drift {
-                    from { transform: translateX(-20%); }
-                    to   { transform: translateX(20%); }
-                }
-
-                /* Bubbles */
-                .bubble {
-                    position: absolute;
-                    bottom: -60px;
-                    width: 12px;
-                    height: 12px;
-                    background: rgba(255, 255, 255, 0.6);
-                    border-radius: 50%;
-                    animation: rise 11s infinite ease-in;
-                    filter: blur(1px);
-                }
-                .b1 { left: 12%; animation-duration: 10s; }
-                .b2 { left: 32%; width: 15px; height: 15px; animation-duration: 12s; }
-                .b3 { left: 52%; animation-duration: 14s; }
-                .b4 { left: 72%; width: 10px; height: 10px; animation-duration: 11s; }
-                .b5 { left: 88%; animation-duration: 13s; }
-
-                @keyframes rise {
-                    0%   { transform: translateY(0) scale(1); opacity: 0.4; }
-                    50%  { opacity: 1; }
-                    100% { transform: translateY(-900px) scale(1.4); opacity: 0; }
-                }
-
-                .fade-up { animation: fadeUp 0.9s ease both; }
-                @keyframes fadeUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to   { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
         </div>
     );
 };

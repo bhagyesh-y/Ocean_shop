@@ -7,7 +7,7 @@ import { api } from "../api/http";
 import { FaAnchor, FaReceipt, FaShoppingBasket } from "react-icons/fa";
 
 const Dashboard = () => {
-    const { cart, totalPrice } = useContext(CartContext);
+    const { cart, cartCount, totalPrice } = useContext(CartContext);
     const { oceanUser } = useContext(OceanAuthContext);
     const [atlanticFade, setAtlanticFade] = useState(false);
     const [recentOrders, setRecentOrders] = useState([]);
@@ -143,7 +143,7 @@ const Dashboard = () => {
                         {cart.length > 0 ? (
                             <>
                                 <p className="fw-semibold mb-1">
-                                    Items: <span className="text-primary">{cart.length}</span>
+                                    Items: <span className="text-primary">{cartCount}</span>
                                 </p>
                                 <p className="fw-semibold mb-4">
                                     Total: <span className="text-success">₹{totalPrice}</span>

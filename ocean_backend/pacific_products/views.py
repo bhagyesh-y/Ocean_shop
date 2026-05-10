@@ -47,12 +47,13 @@ class OceanCartListCreateView(generics.ListCreateAPIView):
         product = serializer.validated_data.get("product")
         quantity = serializer.validated_data.get("quantity", 1)
 
-    # Check if item is already in cart
         existing_item = OceanCart.objects.filter(user=user, product=product).first()
 
         if existing_item:
             existing_item.quantity += quantity
             existing_item.save()
+            # DRF serializes `serializer.data` after perform_create — instance must be set
+            serializer.instance = existing_item
         else:
             serializer.save(user=user)
 

@@ -5,7 +5,7 @@ import { OceanAuthContext } from "../context/AuthContext.jsx";
 import { FaShoppingCart, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
 
 const PacificNavbar = () => {
-    const { cart, clearCart } = useContext(CartContext);
+    const { cart, cartCount, clearCart } = useContext(CartContext);
     const { logoutUser } = useContext(OceanAuthContext);
     const [pacificOpen, setPacificOpen] = useState(false);
     const location = useLocation();
@@ -88,9 +88,9 @@ const PacificNavbar = () => {
                         >
                             <FaShoppingCart className="me-1" aria-hidden />
                             <span className="d-none d-xl-inline">Cart</span>
-                            {cart?.length > 0 && (
+                            {cartCount > 0 && (
                                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill pacificCartBadge">
-                                    {cart.length}
+                                    {cartCount}
                                 </span>
                             )}
                         </NavLink>
@@ -179,9 +179,9 @@ const PacificNavbar = () => {
                     >
                         <FaShoppingCart className="me-2" aria-hidden />
                         Your cart
-                        {cart?.length > 0 && (
+                        {cartCount > 0 && (
                             <span className="badge rounded-pill pacificCartBadge pacificReefCart__badge">
-                                {cart.length}
+                                {cartCount}
                             </span>
                         )}
                     </NavLink>

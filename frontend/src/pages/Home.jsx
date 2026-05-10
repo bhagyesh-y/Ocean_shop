@@ -70,8 +70,9 @@ const Home = () => {
         getProducts();
     }, []);
 
-    const handleAddToCart = (product) => {
-        addToCart(product);
+    const handleAddToCart = async (product) => {
+        const ok = await addToCart(product);
+        if (!ok) return;
         setAddedProducts((prev) => [...prev, product.id]);
         toast.success("Swept into your cart", { theme: "colored" });
         setTimeout(() => {
@@ -201,7 +202,6 @@ const Home = () => {
                                         key={product.id}
                                         className="col-6 col-md-4 col-lg-3"
                                         variants={cardVariants}
-                                        whileHover={{ scale: 1.02 }}
                                     >
                                         <div className="product-card h-100 home-product-shell">
                                             <div className="product-image">
@@ -212,13 +212,11 @@ const Home = () => {
                                                 <p className="small text-truncate px-1">{product.description}</p>
                                                 <p className="price">₹{product.price}</p>
                                                 <div className="mt-auto d-flex flex-column flex-sm-row justify-content-center gap-2">
-                                                    <Link to={`/product/${product.id}`} className="d-grid">
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-outline-primary btn-sm"
-                                                        >
-                                                            View details
-                                                        </button>
+                                                    <Link
+                                                        to={`/product/${product.id}`}
+                                                        className="btn btn-outline-primary btn-sm text-center text-decoration-none"
+                                                    >
+                                                        View details
                                                     </Link>
                                                     <button
                                                         type="button"

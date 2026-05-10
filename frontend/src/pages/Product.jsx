@@ -34,8 +34,9 @@ const Products = () => {
         getProducts();
     }, []);
 
-    const handleAddToCart = (product) => {
-        addToCart(product);
+    const handleAddToCart = async (product) => {
+        const ok = await addToCart(product);
+        if (!ok) return;
         setAddedProducts((prev) => [...prev, product.id]);
         toast.success("Added to your cart", { theme: "colored" });
         setTimeout(() => {
@@ -135,28 +136,21 @@ const Products = () => {
                                         key={product.id}
                                         className="col-6 col-md-4 col-lg-3"
                                         variants={cardVariants}
-                                        whileHover={{ scale: 1.02 }}
                                     >
                                         <div className="product-card ocean-product-card-shell h-100">
-                                            <motion.div
-                                                className="product-image"
-                                                whileHover={{ scale: 1.02 }}
-                                                transition={{ duration: 0.35 }}
-                                            >
+                                            <div className="product-image">
                                                 <img src={product.image} alt={product.name} />
-                                            </motion.div>
+                                            </div>
                                             <div className="product-body d-flex flex-column">
                                                 <h5 className="text-primary">{product.name}</h5>
                                                 <p className="small text-truncate">{product.description}</p>
                                                 <p className="price">₹{product.price}</p>
                                                 <div className="mt-auto d-flex flex-column flex-sm-row justify-content-center gap-2">
-                                                    <Link to={`/product/${product.id}`} className="d-grid">
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-outline-primary btn-sm ocean-product-btn"
-                                                        >
-                                                            Details
-                                                        </button>
+                                                    <Link
+                                                        to={`/product/${product.id}`}
+                                                        className="btn btn-outline-primary btn-sm ocean-product-btn text-center text-decoration-none"
+                                                    >
+                                                        Details
                                                     </Link>
                                                     <button
                                                         type="button"
