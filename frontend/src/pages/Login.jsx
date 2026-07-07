@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { apiUrl } from "../config";
 
 const Login = () => {
@@ -12,6 +13,7 @@ const Login = () => {
   const [waveError, setWaveError] = useState("");
   const [atlanticFade, setAtlanticFade] = useState(false);
   const [loadingWave, setloadingWave] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setAtlanticFade(true), 150);
@@ -105,15 +107,27 @@ const Login = () => {
           </div>
           <div className="mb-4">
             <label className="form-label fw-semibold">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              placeholder="Enter password"
-              value={tideForm.password}
-              onChange={handleTideChange}
-              required
-            />
+            <div className="ocean-password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className="form-control"
+                placeholder="Enter password"
+                value={tideForm.password}
+                onChange={handleTideChange}
+                required
+              />
+              <button
+                type="button"
+                className="ocean-password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                tabIndex={-1}
+              >
+                {showPassword ? <FaEyeSlash aria-hidden /> : <FaEye aria-hidden />}
+              </button>
+            </div>
           </div>
 
           <button

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { OceanAuthContext } from "../context/AuthContext";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 const Register = () => {
     const { oceanRegister } = useContext(OceanAuthContext);// destructuring the context values
     const navigate = useNavigate();
@@ -17,6 +18,8 @@ const Register = () => {
     const [errorWave, setErrorWave] = useState("");
     const [successWave, setSuccessWave] = useState("");
     const [loadingWave, setLoadingWave] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         setTimeout(() => setAtlanticFade(true), 150);
@@ -122,28 +125,52 @@ const Register = () => {
 
                     <div className="mb-3">
                         <label className="form-label">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            className="form-control"
-                            placeholder="Enter password"
-                            value={pacificForm.password}
-                            onChange={handleTideChange}
-                            required
-                        />
+                        <div className="ocean-password-field">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                className="form-control"
+                                placeholder="Enter password"
+                                value={pacificForm.password}
+                                onChange={handleTideChange}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="ocean-password-toggle"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-pressed={showPassword}
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <FaEyeSlash aria-hidden /> : <FaEye aria-hidden />}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mb-4">
                         <label className="form-label">Confirm Password</label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            className="form-control"
-                            placeholder="Re-enter password"
-                            value={pacificForm.confirmPassword}
-                            onChange={handleTideChange}
-                            required
-                        />
+                        <div className="ocean-password-field">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                className="form-control"
+                                placeholder="Re-enter password"
+                                value={pacificForm.confirmPassword}
+                                onChange={handleTideChange}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="ocean-password-toggle"
+                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                aria-pressed={showConfirmPassword}
+                                tabIndex={-1}
+                            >
+                                {showConfirmPassword ? <FaEyeSlash aria-hidden /> : <FaEye aria-hidden />}
+                            </button>
+                        </div>
                     </div>
 
                     <button
