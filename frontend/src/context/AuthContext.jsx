@@ -4,8 +4,19 @@ import { apiUrl } from "../config";
 
 export const OceanAuthContext = createContext();
 
+const readStoredUser = () => {
+    try {
+        const raw = localStorage.getItem("oceanUser");
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+};
+
 export const OceanAuthProvider = ({ children }) => {
-    const [oceanUser, setOceanUser] = useState(null);
+    // Hydrate from localStorage so a refresh doesn't flash back to /login
+    // before the cookie-based profile check completes.
+    const [oceanUser, setOceanUser] = useState(readStoredUser);
     const [isAuthReady, setIsAuthReady] = useState(false);
 
     const logoutUser = useCallback(async () => {
@@ -33,8 +44,11 @@ export const OceanAuthProvider = ({ children }) => {
         const bootstrap = async () => {
             try {
                 await fetchProfile();
-            } catch {
-                if (!cancelled) {
+            } catch (err) {
+                // Only log out on a real "unauthenticated" response (after the
+                // interceptor's refresh attempt). Network/other errors keep the
+                // cached user so a hiccup doesn't kick you to /login.
+                if (!cancelled && err?.response?.status === 401) {
                     setOceanUser(null);
                     localStorage.removeItem("oceanUser");
                 }
