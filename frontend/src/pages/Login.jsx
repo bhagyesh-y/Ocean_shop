@@ -175,6 +175,11 @@ const Login = () => {
         </form>
 
         <div className="text-center mt-3">
+          <small className="text-muted d-block">
+            <Link to="/forgot-password" className="text-decoration-none fw-semibold text-primary">
+              Forgot password?
+            </Link>
+          </small>
           <small className="text-muted">
             Don’t have an account?{" "}
             <Link to="/register" className="text-decoration-none fw-semibold text-primary">

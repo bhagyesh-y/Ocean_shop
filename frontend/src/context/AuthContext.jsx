@@ -94,10 +94,14 @@ export const OceanAuthProvider = ({ children }) => {
         }
     };
 
-    /** After Google OAuth: same shape as /api/profile/ plus picture (set in one response). */
-    const oceanSetGoogleUser = (user) => {
+    const oceanSetUser = useCallback((user) => {
         setOceanUser(user);
         localStorage.setItem("oceanUser", JSON.stringify(user));
+    }, []);
+
+    /** After Google OAuth: same shape as /api/profile/ plus picture (set in one response). */
+    const oceanSetGoogleUser = (user) => {
+        oceanSetUser(user);
     };
 
     return (
@@ -109,6 +113,7 @@ export const OceanAuthProvider = ({ children }) => {
                 oceanRegister,
                 logoutUser,
                 oceanSetGoogleUser,
+                oceanSetUser,
             }}
         >
             {children}

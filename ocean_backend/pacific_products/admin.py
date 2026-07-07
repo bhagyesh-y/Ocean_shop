@@ -1,9 +1,7 @@
 from django.contrib import admin
-from .models import Product,OceanCart
-
+from .models import Product, OceanCart, Wishlist, ProductReview
 
 admin.site.register(Product)
 admin.site.register(OceanCart)
-
-
-# Register your models here.
+admin.site.register(Wishlist)
+admin.site.register(ProductReview)

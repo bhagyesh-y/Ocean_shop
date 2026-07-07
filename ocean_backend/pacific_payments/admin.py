@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OceanOrder,RazorpayWebhookLog , PaymentHistory,OceanInvoice
+from .models import OceanOrder, RazorpayWebhookLog, PaymentHistory, OceanInvoice, Coupon
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -43,6 +43,12 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
       list_display = ("id", "user", "order_id", "payment_id", "amount", "status", "created_at")
       search_fields = ("order_id", "payment_id", "user__email")
    
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ("code", "discount_percent", "discount_amount", "is_active", "used_count", "valid_until")
+    search_fields = ("code",)
+
+
 @admin.register(OceanInvoice)
 class OceanInvoiceAdmin(admin.ModelAdmin):
     list_display = ("invoice_number", "user", "order", "invoice_date", "issue_date")

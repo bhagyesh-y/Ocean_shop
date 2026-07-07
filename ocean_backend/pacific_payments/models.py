@@ -22,9 +22,53 @@ class OceanOrder(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # Snapshot of cart line items at checkout (for invoices / audits)
     line_items_snapshot = models.JSONField(default=_empty_line_items, blank=True)
+    coupon_code = models.CharField(max_length=50, blank=True, null=True)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Order {self.order_id} by {self.user.username}"
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount_percent = models.PositiveSmallIntegerField(
+        default=0, help_text="Percentage off (0–100). Use this OR discount_amount."
+    )
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, help_text="Flat ₹ off. Used when discount_percent is 0."
+    )
+    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_uses = models.PositiveIntegerField(default=0, help_text="0 = unlimited")
+    used_count = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    valid_until = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.code
+
+    def is_valid(self):
+        from django.utils import timezone
+
+        if not self.is_active:
+            return False
+        if self.valid_until and timezone.now() > self.valid_until:
+            return False
+        if self.max_uses and self.used_count >= self.max_uses:
+            return False
+        return True
+
+    def calculate_discount(self, subtotal):
+        from decimal import Decimal
+
+        subtotal = Decimal(str(subtotal))
+        if subtotal < self.min_order_amount:
+            return Decimal("0")
+        if self.discount_percent:
+            return (subtotal * Decimal(self.discount_percent) / Decimal("100")).quantize(
+                Decimal("0.01")
+            )
+        return min(Decimal(str(self.discount_amount)), subtotal)
     
 class RazorpayWebhookLog(models.Model):
     event = models.CharField(max_length=100)

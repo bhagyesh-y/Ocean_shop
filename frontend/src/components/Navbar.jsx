@@ -76,6 +76,15 @@ const PacificNavbar = () => {
                         <NavLink to="/dashboard" className={desktopNavClass}>
                             Dashboard
                         </NavLink>
+                        <NavLink to="/orders" className={desktopNavClass}>
+                            Orders
+                        </NavLink>
+                        <NavLink to="/wishlist" className={desktopNavClass}>
+                            Wishlist
+                        </NavLink>
+                        <NavLink to="/profile" className={desktopNavClass}>
+                            Profile
+                        </NavLink>
                         <NavLink to="/feedback" className={desktopNavClass}>
                             Feedback
                         </NavLink>
@@ -161,10 +170,19 @@ const PacificNavbar = () => {
                     <NavLink to="/about" className={reefLinkClass} onClick={closeReef}>
                         About
                     </NavLink>
-                    <NavLink to="/dashboard" className={reefLinkClass} onClick={closeReef}>
-                        Dashboard
-                    </NavLink>
-                    <NavLink to="/feedback" className={reefLinkClass} onClick={closeReef}>
+                        <NavLink to="/dashboard" className={reefLinkClass} onClick={closeReef}>
+                            Dashboard
+                        </NavLink>
+                        <NavLink to="/orders" className={reefLinkClass} onClick={closeReef}>
+                            Orders
+                        </NavLink>
+                        <NavLink to="/wishlist" className={reefLinkClass} onClick={closeReef}>
+                            Wishlist
+                        </NavLink>
+                        <NavLink to="/profile" className={reefLinkClass} onClick={closeReef}>
+                            Profile
+                        </NavLink>
+                        <NavLink to="/feedback" className={reefLinkClass} onClick={closeReef}>
                         Feedback
                     </NavLink>
                     <NavLink to="/payment-history" className={reefLinkClass} onClick={closeReef}>

@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import PaymentHistory, OceanInvoice
+from .models import PaymentHistory, OceanInvoice, OceanOrder, Coupon
+
 
 class PaymentHistorySerializer(serializers.ModelSerializer):
     invoice_id = serializers.SerializerMethodField()
-    invoice_url = serializers.SerializerMethodField() 
+    invoice_url = serializers.SerializerMethodField()
 
     class Meta:
         model = PaymentHistory
@@ -24,8 +25,7 @@ class PaymentHistorySerializer(serializers.ModelSerializer):
         invoice = OceanInvoice.objects.filter(payment=obj).first()
         if not invoice:
             invoice = OceanInvoice.objects.filter(
-                order__order_id=obj.order_id,
-                user=obj.user
+                order__order_id=obj.order_id, user=obj.user
             ).first()
         return invoice.id if invoice else None
 
@@ -33,7 +33,30 @@ class PaymentHistorySerializer(serializers.ModelSerializer):
         invoice = OceanInvoice.objects.filter(payment=obj).first()
         if not invoice:
             invoice = OceanInvoice.objects.filter(
-                order__order_id=obj.order_id,
-                user=obj.user
+                order__order_id=obj.order_id, user=obj.user
             ).first()
         return invoice.pdf_url if invoice else None
+
+
+class OceanOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OceanOrder
+        fields = [
+            "id",
+            "order_id",
+            "payment_id",
+            "amount",
+            "currency",
+            "status",
+            "method",
+            "is_paid",
+            "coupon_code",
+            "discount_amount",
+            "line_items_snapshot",
+            "created_at",
+        ]
+
+
+class CouponValidateSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=50)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)

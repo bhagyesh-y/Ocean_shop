@@ -5,16 +5,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 import { motion } from "framer-motion";
 import { apiUrl } from "../config";
+import { validateCoupon } from "../api/OceanAPI";
 
 
 const Cart = () => {
-    const { cart, removeFromCart, clearCart, totalPrice, setCart } = useContext(CartContext);
+    const { cart, removeFromCart, clearCart, totalPrice, setCart, updateCartQuantity } = useContext(CartContext);
     const { oceanUser } = useContext(OceanAuthContext);
     const [fadeIn, setFadeIn] = useState(false);
-    const [atlanticFade, setAtlanticFade] = useState(false)
+    const [atlanticFade, setAtlanticFade] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [loadingPayment, setLoadingPayment] = useState(false); // 🌀 Loader
+    const [loadingPayment, setLoadingPayment] = useState(false);
+    const [couponInput, setCouponInput] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [discount, setDiscount] = useState(0);
     const navigate = useNavigate();
+
+    const payableTotal = Math.max(totalPrice - discount, 0);
 
 
     useEffect(() => {
@@ -62,6 +68,47 @@ const Cart = () => {
         setShowModal(true);
     };
 
+    const handleApplyCoupon = async () => {
+        if (!couponInput.trim()) return;
+        try {
+            const result = await validateCoupon(couponInput.trim(), totalPrice);
+            if (result.valid) {
+                setAppliedCoupon(result.code);
+                setDiscount(result.discount);
+                toast.success(`Coupon applied — saved ₹${result.discount}`, { theme: "colored" });
+            } else {
+                toast.error(result.detail || "Invalid coupon", { theme: "colored" });
+            }
+        } catch {
+            toast.error("Could not validate coupon", { theme: "colored" });
+        }
+    };
+
+    const handleQuantityChange = async (item, delta) => {
+        const newQty = item.quantity + delta;
+        await updateCartQuantity(item.id, newQty);
+        if (appliedCoupon) {
+            const projected = cart.reduce((sum, ci) => {
+                let q = ci.quantity;
+                if (ci.id === item.id) q = newQty;
+                if (q < 1) return sum;
+                return sum + parseFloat(ci.product?.price || ci.price || 0) * q;
+            }, 0);
+            try {
+                const result = await validateCoupon(appliedCoupon, projected);
+                if (result.valid) setDiscount(result.discount);
+                else {
+                    setAppliedCoupon(null);
+                    setDiscount(0);
+                    toast.info("Coupon removed — cart total changed", { theme: "colored" });
+                }
+            } catch {
+                setAppliedCoupon(null);
+                setDiscount(0);
+            }
+        }
+    };
+
     const confirmCheckout = async () => {
         try {
             setLoadingPayment(true); // 🌀 Start loader
@@ -72,7 +119,7 @@ const Cart = () => {
                 return;
             }
 
-            const amount = totalPrice;
+            const amount = payableTotal;
 
             const response = await fetch(apiUrl("/api/payments/create-order/"), {
                 method: "POST",
@@ -82,6 +129,7 @@ const Cart = () => {
                 },
                 body: JSON.stringify({
                     amount: amount,
+                    coupon_code: appliedCoupon || "",
                 }),
             });
 
@@ -127,7 +175,9 @@ const Cart = () => {
                         const verifyData = await verifyResponse.json();
 
                         if (verifyData.status === "Payment Successful") {
-                            toast.success("Payment Successful 🌊", { theme: "colored" });
+                            toast.success("Payment successful — order confirmed!", { theme: "colored" });
+                            setAppliedCoupon(null);
+                            setDiscount(0);
 
                             // small success flash before redirect
                             setTimeout(() => {
@@ -232,7 +282,25 @@ const Cart = () => {
                                     </td>
                                     <td>{item.product?.name || item.name}</td>
                                     <td>₹{item.product?.price || item.price}</td>
-                                    <td>{item.quantity}</td>
+                                    <td>
+                                        <div className="d-flex align-items-center justify-content-center gap-2">
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-secondary"
+                                                onClick={() => handleQuantityChange(item, -1)}
+                                            >
+                                                −
+                                            </button>
+                                            <span className="fw-semibold">{item.quantity}</span>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-secondary"
+                                                onClick={() => handleQuantityChange(item, 1)}
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td>₹{((parseFloat(item.product?.price || item.price) * item.quantity)).toFixed(2)}</td>
                                     <td>
                                         <button
@@ -261,7 +329,23 @@ const Cart = () => {
                                 <div className="cart-mobile-info">
                                     <h6 className="fw-bold">{item.product?.name || item.name}</h6>
                                     <p className="text-success fw-bold mb-1">₹{item.product?.price || item.price}</p>
-                                    <p className="mb-1">Qty: {item.quantity}</p>
+                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={() => handleQuantityChange(item, -1)}
+                                        >
+                                            −
+                                        </button>
+                                        <span>Qty: {item.quantity}</span>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={() => handleQuantityChange(item, 1)}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                     <p className="fw-bold">
                                         Subtotal: ₹
                                         {((parseFloat(item.product?.price || item.price) * item.quantity)).toFixed(2)}
@@ -282,8 +366,32 @@ const Cart = () => {
                 </div>
 
 
-                <div className="d-flex justify-content-between align-items-center mt-4 px-2">
-                    <h4 className="text-white fw-bold">Total: ₹{totalPrice}</h4>
+                <div className="ocean-surface-card mx-2 mb-3 p-3">
+                    <label className="form-label fw-semibold small mb-2">Coupon code</label>
+                    <div className="d-flex flex-column flex-sm-row gap-2">
+                        <input
+                            className="form-control"
+                            placeholder="e.g. OCEAN10"
+                            value={couponInput}
+                            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        />
+                        <button type="button" className="btn btn-outline-primary" onClick={handleApplyCoupon}>
+                            Apply
+                        </button>
+                    </div>
+                    {appliedCoupon && (
+                        <p className="small text-success mt-2 mb-0">
+                            {appliedCoupon} applied — you save ₹{discount}
+                        </p>
+                    )}
+                </div>
+
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 px-2 gap-3">
+                    <div className="text-white fw-bold text-center text-md-start">
+                        <div>Subtotal: ₹{totalPrice}</div>
+                        {discount > 0 && <div className="text-success small">Discount: −₹{discount}</div>}
+                        <div className="h5 mb-0">Total: ₹{payableTotal}</div>
+                    </div>
                     <div>
                         <button className="btn btn-outline-light me-3" onClick={clearCart}>
                             Clear Cart
@@ -315,7 +423,14 @@ const Cart = () => {
                                 ></button>
                             </div>
                             <div className="modal-body text-center">
-                                <h5 className="fw-semibold mb-3 text-primary">Total: ₹{totalPrice}</h5>
+                                <h5 className="fw-semibold mb-3 text-primary">
+                                    Total: ₹{payableTotal}
+                                    {discount > 0 && (
+                                        <span className="d-block small text-muted text-decoration-line-through">
+                                            ₹{totalPrice}
+                                        </span>
+                                    )}
+                                </h5>
                                 <p>Are you sure you want to place your order? 🌊</p>
                             </div>
                             <div className="modal-footer justify-content-center">

@@ -15,8 +15,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import OceanOrder, RazorpayWebhookLog, PaymentHistory, OceanInvoice
-from .serializers import PaymentHistorySerializer
+from .models import OceanOrder, RazorpayWebhookLog, PaymentHistory, OceanInvoice, Coupon
+from .serializers import PaymentHistorySerializer, OceanOrderSerializer, CouponValidateSerializer
 from .utils import save_and_email_invoice
 from pacific_products.models import OceanCart
 
@@ -67,6 +67,19 @@ def create_order(request):
                 }
             )
 
+        discount = Decimal("0")
+        coupon_code = (data.get("coupon_code") or "").strip().upper()
+        coupon_obj = None
+        if coupon_code:
+            coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
+            if not coupon_obj or not coupon_obj.is_valid():
+                return Response(
+                    {"error": "Invalid or expired coupon code."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            discount = coupon_obj.calculate_discount(server_total)
+            server_total = max(server_total - discount, Decimal("0"))
+
         if abs(server_total - amount_client) > Decimal("0.05"):
             return Response(
                 {"error": "Amount does not match your cart. Refresh and try again."},
@@ -94,6 +107,8 @@ def create_order(request):
             amount=float(server_total),
             is_paid=False,
             line_items_snapshot=line_items_snapshot,
+            coupon_code=coupon_code or None,
+            discount_amount=discount,
         )
 
         return Response(
@@ -102,6 +117,7 @@ def create_order(request):
                 "key": settings.RAZORPAY_KEY_ID,
                 "amount": float(server_total),
                 "currency": "INR",
+                "discount": float(discount),
             }
         )
 
@@ -142,6 +158,12 @@ def verify_payment(request):
         order.method = "razorpay"
         order.currency = "INR"
         order.save()
+
+        if order.coupon_code:
+            coupon = Coupon.objects.filter(code__iexact=order.coupon_code).first()
+            if coupon:
+                coupon.used_count += 1
+                coupon.save(update_fields=["used_count"])
 
         OceanCart.objects.filter(user=user).delete()
 
@@ -300,3 +322,39 @@ def recent_payments(request):
     )[:5]
     serializer = PaymentHistorySerializer(payments, many=True)
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def user_orders(request):
+    orders = OceanOrder.objects.filter(user=request.user).order_by("-created_at")
+    serializer = OceanOrderSerializer(orders, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def validate_coupon(request):
+    serializer = CouponValidateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    code = serializer.validated_data["code"].strip().upper()
+    subtotal = serializer.validated_data["subtotal"]
+    coupon = Coupon.objects.filter(code__iexact=code).first()
+    if not coupon or not coupon.is_valid():
+        return Response({"valid": False, "detail": "Invalid or expired coupon."})
+    discount = coupon.calculate_discount(subtotal)
+    if discount <= 0:
+        return Response(
+            {
+                "valid": False,
+                "detail": f"Minimum order amount is ₹{coupon.min_order_amount}.",
+            }
+        )
+    return Response(
+        {
+            "valid": True,
+            "code": coupon.code,
+            "discount": float(discount),
+            "new_total": float(subtotal - discount),
+        }
+    )

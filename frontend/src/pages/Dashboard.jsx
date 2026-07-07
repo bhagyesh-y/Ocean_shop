@@ -118,12 +118,18 @@ const Dashboard = () => {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="text-center mt-4">
+                                <div className="text-center mt-4 d-flex flex-wrap justify-content-center gap-2">
                                     <NavLink
                                         to="/payment-history"
                                         className="btn ocean-dash-btn-secondary rounded-pill px-4"
                                     >
                                         Full payment log
+                                    </NavLink>
+                                    <NavLink to="/orders" className="btn ocean-dash-btn-accent rounded-pill px-4">
+                                        All orders
+                                    </NavLink>
+                                    <NavLink to="/profile" className="btn ocean-dash-btn-primary rounded-pill px-4">
+                                        Edit profile
                                     </NavLink>
                                 </div>
                             </>

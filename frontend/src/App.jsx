@@ -1,7 +1,5 @@
 import React, { useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 import { OceanAuthContext } from "./context/AuthContext";
 import OceanPrivateRoute from "./utils/OceanPrivateRoute";
@@ -23,6 +21,11 @@ import About from "./pages/About";
 import CustomerService from "./pages/CustomerService";
 import QuickLinks from "./pages/QuickLinks";
 import PaymentHistory from "./pages/PaymentHistory";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
+import Wishlist from "./pages/Wishlist";
 
 const AppRoutes = () => {
   const { oceanUser, isAuthReady } = useContext(OceanAuthContext);
@@ -42,6 +45,8 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -137,6 +142,9 @@ const AppRoutes = () => {
               </OceanPrivateRoute>
             }
           />
+          <Route path="/profile" element={<OceanPrivateRoute><Profile /></OceanPrivateRoute>} />
+          <Route path="/orders" element={<OceanPrivateRoute><Orders /></OceanPrivateRoute>} />
+          <Route path="/wishlist" element={<OceanPrivateRoute><Wishlist /></OceanPrivateRoute>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -154,7 +162,6 @@ const App = () => {
       <div className="d-flex flex-column min-vh-100">
         <AppRoutes />
       </div>
-      <ToastContainer />
     </Router>
   );
 };

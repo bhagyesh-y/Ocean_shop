@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 import { apiUrl } from "../config";
+import { deleteCartItem, updateCartItem } from "../api/OceanAPI";
 import { OceanAuthContext } from "./AuthContext";
 
 export const CartContext = createContext();
@@ -77,8 +78,29 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const removeFromCart = (id) => {
-        setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    const removeFromCart = async (id) => {
+        try {
+            await deleteCartItem(id);
+            setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+        } catch (error) {
+            console.error("Error removing from cart:", error);
+            toast.error("Could not remove item", { theme: "colored" });
+        }
+    };
+
+    const updateCartQuantity = async (id, quantity) => {
+        if (quantity < 1) {
+            return removeFromCart(id);
+        }
+        try {
+            await updateCartItem(id, quantity);
+            await syncCartFromServer();
+            return true;
+        } catch (error) {
+            console.error("Error updating quantity:", error);
+            toast.error("Could not update quantity", { theme: "colored" });
+            return false;
+        }
     };
 
     const clearCart = async () => {
@@ -113,6 +135,7 @@ export const CartProvider = ({ children }) => {
                 cart,
                 addToCart,
                 removeFromCart,
+                updateCartQuantity,
                 clearCart,
                 totalPrice,
                 cartCount,

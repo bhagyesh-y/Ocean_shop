@@ -1,7 +1,12 @@
 from django.contrib import admin
-from pacific_auth.views import RegisterView, ProfileView
 from django.urls import path, include, re_path
-from pacific_auth.views import GoogleLoginView
+from pacific_auth.views import (
+    RegisterView,
+    ProfileView,
+    GoogleLoginView,
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
+)
 from pacific_auth.jwt_views import (
     CookieTokenObtainPairView,
     CookieTokenRefreshView,
@@ -19,6 +24,8 @@ urlpatterns = [
     path("api/logout/", LogoutView.as_view(), name="logout"),
     path("api/register/", RegisterView.as_view(), name="register"),
     path('api/profile/', ProfileView.as_view(), name='profile'),
+    path('api/password-reset/', PasswordResetRequestView.as_view(), name='password_reset'),
+    path('api/password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('api/google-login/', GoogleLoginView.as_view(), name='google_login'),
     path("api/", include("pacific_products.urls")),
     path('api/payments/', include('pacific_payments.urls')),
